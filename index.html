@@ -45,6 +45,7 @@
     <script type="text/babel">
       const { useState } = React;
 
+      // Eight financial values for selection
       const financialValues = [
         { id: 'financialSecurity', label: 'Financial Security' },
         { id: 'financialIndependence', label: 'Financial Independence' },
@@ -53,10 +54,10 @@
         { id: 'entrepreneurialGrowth', label: 'Entrepreneurial Growth & Business Expansion' },
         { id: 'legacyWealth', label: 'Legacy Wealth Building' },
         { id: 'qualityOfLife', label: 'Quality of Life' },
-        { id: 'familyUnity', label: 'Family Unity' },
         { id: 'stability', label: 'Stability' },
       ];
 
+      // Goal directions for each financial value
       const financialGoals = {
         financialSecurity: [
           { id: 'emergencyFund', label: 'Establish comprehensive emergency fund' },
@@ -86,10 +87,6 @@
         qualityOfLife: [
           { id: 'budgetExperiences', label: 'Budget for meaningful experiences and travel' },
           { id: 'healthWellness', label: 'Invest in health and wellness priorities' },
-        ],
-        familyUnity: [
-          { id: 'sharedDecision', label: 'Establish shared family financial decision process' },
-          { id: 'familyFund', label: 'Create fund for family gatherings and traditions' },
         ],
         stability: [
           { id: 'housing', label: 'Secure appropriate housing situation (ownership vs. strategic renting)' },
@@ -150,10 +147,10 @@
           if (selectedValues.includes(id)) {
             newValues = selectedValues.filter((v) => v !== id);
           } else {
-            if (selectedValues.length < 3) {
+            if (selectedValues.length < 5) {
               newValues = [...selectedValues, id];
             } else {
-              alert('You can only select 3 values.');
+              alert('You can only select 5 values.');
               return;
             }
           }
@@ -162,7 +159,7 @@
 
         return (
           <div>
-            <h2>Step 2: Choose Your Top 3 Financial Values</h2>
+            <h2>Step 2: Choose Your Top 5 Financial Values</h2>
             <ul>
               {financialValues.map((value) => (
                 <li key={value.id}>
@@ -187,12 +184,6 @@
             newGoals = currentGoals.filter((g) => g !== goalId);
           } else {
             newGoals = [...currentGoals, goalId];
-            // Check total selected across all values
-            const totalSelected = Object.values(selectedGoals).reduce((acc, goals) => acc + goals.length, 0) + 1;
-            if (totalSelected > 6) {
-              alert('You can select a maximum of 6 directions overall.');
-              return;
-            }
           }
           setSelectedGoals({ ...selectedGoals, [valueId]: newGoals });
         };
