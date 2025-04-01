@@ -1,222 +1,212 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <title>10-Year Board Calculator</title>
-    <!-- Import React and ReactDOM from CDNs -->
-    <script crossorigin src="https://unpkg.com/react@17/umd/react.development.js"></script>
-    <script crossorigin src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>
-    <!-- Babel for JSX transformation -->
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <style>
-      body {
-        font-family: Arial, sans-serif;
-        padding: 20px;
-      }
-      .App {
-        max-width: 900px;
-        margin: 0 auto;
-      }
-      input {
-        margin: 5px;
-        padding: 5px;
-      }
-      button {
-        margin: 5px;
-        padding: 8px 16px;
-        cursor: pointer;
-      }
-      table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-top: 20px;
-      }
-      th, td {
-        border: 1px solid #ccc;
-        padding: 8px;
-        text-align: center;
-      }
-      .step {
-        display: none;
-      }
-      .step.active {
-        display: block;
-      }
-      .goal-list {
-        margin-top: 10px;
-      }
-    </style>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="text/babel">
-      const { useState } = React;
+<head>
+  <meta charset="UTF-8" />
+  <title>10-Year Board Calculator</title>
+  <!-- Import React and ReactDOM from CDNs -->
+  <script crossorigin src="https://unpkg.com/react@17/umd/react.development.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>
+  <!-- Babel for JSX transformation -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    .App { max-width: 900px; margin: 0 auto; }
+    input { margin: 5px; padding: 5px; }
+    button { margin: 5px; padding: 8px 16px; cursor: pointer; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
+    .step { display: none; }
+    .step.active { display: block; }
+    .goal-list { margin-top: 10px; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+    const { useState } = React;
 
-      // Helper: format numbers with commas, e.g., 200,000.00
-      const formatNumber = (num) => new Intl.NumberFormat('en-US', {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      }).format(num);
+    // Helper: Format numbers with commas (e.g., 200,000.00)
+    const formatNumber = (num) =>
+      new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(num);
 
-      // Component for adding a single goal
-      function GoalForm({ onAddGoal }) {
-        const initialGoal = {
-          goalName: '',
-          totalAmount: '',
-          targetStartYear: '',
-          targetCompletionYear: '',
-          monthlySaving: '',
-          currentProgress: ''
-        };
-        const [goal, setGoal] = useState(initialGoal);
+    // GoalForm: Inputs for one goal; calculates the required monthly saving.
+    function GoalForm({ onAddGoal }) {
+      const initialGoal = {
+        goalName: '',
+        totalAmount: '',
+        targetStartYear: '',
+        targetCompletionYear: '',
+        estimatedInterestRate: '',
+        inflationRate: '',
+        currentProgress: '',
+      };
+      const [goal, setGoal] = useState(initialGoal);
 
-        const handleChange = (e) => {
-          const { name, value } = e.target;
-          setGoal({ ...goal, [name]: value });
-        };
+      const handleChange = (e) => {
+        const { name, value } = e.target;
+        setGoal({ ...goal, [name]: value });
+      };
 
-        const handleAdd = () => {
-          const { goalName, totalAmount, targetStartYear, targetCompletionYear, monthlySaving, currentProgress } = goal;
-          if (!goalName || !totalAmount || !targetStartYear || !targetCompletionYear || !monthlySaving || currentProgress === '') {
-            alert("Please fill in all fields for the goal.");
-            return;
-          }
-          onAddGoal(goal);
-          setGoal(initialGoal);
-        };
+      const handleAdd = () => {
+        const { goalName, totalAmount, targetStartYear, targetCompletionYear, estimatedInterestRate, inflationRate, currentProgress } = goal;
+        if (!goalName || !totalAmount || !targetStartYear || !targetCompletionYear || !estimatedInterestRate || inflationRate === '' || currentProgress === '') {
+          alert("Please fill in all fields for the goal.");
+          return;
+        }
+        const gap = parseFloat(totalAmount) - parseFloat(currentProgress);
+        const durationYears = parseInt(targetCompletionYear, 10) - parseInt(targetStartYear, 10) + 1;
+        const n = durationYears * 12;
+        const r_nominal = parseFloat(estimatedInterestRate) / 100 / 12;
+        const inflationMonthly = parseFloat(inflationRate) / 100 / 12;
+        // Calculate real monthly rate; avoid division by zero
+        const r_real = (1 + r_nominal) / (1 + inflationMonthly) - 1;
+        let requiredMonthly = 0;
+        if (Math.abs(r_real) < 1e-6) {
+          requiredMonthly = gap / n;
+        } else {
+          requiredMonthly = gap * r_real / (Math.pow(1 + r_real, n) - 1);
+        }
+        // Save computed monthly saving in the goal object.
+        const completeGoal = { ...goal, monthlySaving: requiredMonthly.toFixed(2) };
+        onAddGoal(completeGoal);
+        setGoal(initialGoal);
+      };
 
-        return (
-          <div>
-            <h3>Add a New Goal</h3>
-            <label>
-              Goal Name:
-              <input type="text" name="goalName" value={goal.goalName} onChange={handleChange} />
-            </label><br/>
-            <label>
-              Total Amount Needed:
-              <input type="number" name="totalAmount" value={goal.totalAmount} onChange={handleChange} />
-            </label><br/>
-            <label>
-              Target Start Year (1-10):
-              <input type="number" name="targetStartYear" value={goal.targetStartYear} onChange={handleChange} />
-            </label><br/>
-            <label>
-              Target Completion Year (1-10):
-              <input type="number" name="targetCompletionYear" value={goal.targetCompletionYear} onChange={handleChange} />
-            </label><br/>
-            <label>
-              Total Monthly Saving Amount:
-              <input type="number" name="monthlySaving" value={goal.monthlySaving} onChange={handleChange} />
-            </label><br/>
-            <label>
-              Current Progress:
-              <input type="number" name="currentProgress" value={goal.currentProgress} onChange={handleChange} />
-            </label><br/>
-            <button onClick={handleAdd}>Add Goal</button>
-          </div>
-        );
-      }
+      return (
+        <div>
+          <h3>Add a New Goal</h3>
+          <label>
+            Goal Name:
+            <input type="text" name="goalName" value={goal.goalName} onChange={handleChange} />
+          </label><br/>
+          <label>
+            Total Amount Needed:
+            <input type="number" name="totalAmount" value={goal.totalAmount} onChange={handleChange} />
+          </label><br/>
+          <label>
+            Target Start Year (1-10):
+            <input type="number" name="targetStartYear" value={goal.targetStartYear} onChange={handleChange} />
+          </label><br/>
+          <label>
+            Target Completion Year (1-10):
+            <input type="number" name="targetCompletionYear" value={goal.targetCompletionYear} onChange={handleChange} />
+          </label><br/>
+          <label>
+            Estimated Interest Rate (%):
+            <input type="number" name="estimatedInterestRate" value={goal.estimatedInterestRate} onChange={handleChange} />
+          </label><br/>
+          <label>
+            Inflation Rate (%):
+            <input type="number" name="inflationRate" value={goal.inflationRate} onChange={handleChange} />
+          </label><br/>
+          <label>
+            Current Progress:
+            <input type="number" name="currentProgress" value={goal.currentProgress} onChange={handleChange} />
+          </label><br/>
+          <button onClick={handleAdd}>Add Goal</button>
+        </div>
+      );
+    }
 
-      // Step 1: Align and Prioritize Goals
-      function Step1({ goals, setGoals, onNext }) {
-        const addGoal = (goal) => {
-          setGoals([...goals, goal]);
-        };
+    // Step 1: Align and Prioritize Goals
+    function Step1({ goals, setGoals, onNext }) {
+      const addGoal = (goal) => {
+        setGoals([...goals, goal]);
+      };
 
-        return (
-          <div className="step active">
-            <h2>Step 1: Align and Prioritize Goals</h2>
-            <GoalForm onAddGoal={addGoal} />
-            {goals.length > 0 && (
-              <div className="goal-list">
-                <h3>Your Goals:</h3>
-                <ul>
-                  {goals.map((g, i) => (
-                    <li key={i}>
-                      <strong>{g.goalName}</strong> - Total: {g.totalAmount}, Start: {g.targetStartYear}, End: {g.targetCompletionYear}, Monthly Saving: {g.monthlySaving}, Progress: {g.currentProgress}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-            <button onClick={onNext}>Next</button>
-          </div>
-        );
-      }
+      return (
+        <div className="step active">
+          <h2>Step 1: Align and Prioritize Goals</h2>
+          <GoalForm onAddGoal={addGoal} />
+          {goals.length > 0 && (
+            <div className="goal-list">
+              <h3>Your Goals:</h3>
+              <ul>
+                {goals.map((g, i) => (
+                  <li key={i}>
+                    <strong>{g.goalName}</strong> - Total: {formatNumber(g.totalAmount)}, Start: {g.targetStartYear}, End: {g.targetCompletionYear}, Required Monthly Savings: {formatNumber(g.monthlySaving)}, Progress: {formatNumber(g.currentProgress)}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+          <button onClick={onNext}>Next</button>
+        </div>
+      );
+    }
 
-      // Step 2: Mapping 10-Year Goals
-      function Step2({ goals }) {
-        const years = Array.from({ length: 10 }, (_, i) => i + 1);
-
-        // For each year, determine active goals and sum up the monthly savings
-        const mapping = years.map((year) => {
-          const activeGoals = goals.filter((goal) => {
-            const start = parseInt(goal.targetStartYear, 10);
-            const end = parseInt(goal.targetCompletionYear, 10);
-            return year >= start && year <= end;
-          });
-          const goalNames = activeGoals.map((goal) => goal.goalName).join(', ');
-          const combinedMonthly = activeGoals.reduce((acc, goal) => acc + parseFloat(goal.monthlySaving || 0), 0);
-          const combinedYearly = combinedMonthly * 12;
-          return { year, goalNames, combinedMonthly, combinedYearly };
+    // Step 2: Mapping 10-Year Goals
+    function Step2({ goals }) {
+      const years = Array.from({ length: 10 }, (_, i) => i + 1);
+      // For each year, determine which goals are active and sum up monthly savings.
+      const mapping = years.map((year) => {
+        const activeGoals = goals.filter((g) => {
+          const start = parseInt(g.targetStartYear, 10);
+          const end = parseInt(g.targetCompletionYear, 10);
+          return year >= start && year <= end;
         });
+        const goalNames = activeGoals.map(g => g.goalName).join(', ');
+        const combinedMonthly = activeGoals.reduce((acc, g) => acc + parseFloat(g.monthlySaving || 0), 0);
+        const combinedYearly = combinedMonthly * 12;
+        return { year, goalNames, combinedMonthly, combinedYearly };
+      });
 
-        return (
-          <div className="step active">
-            <h2>Step 2: Mapping 10-Year Goals</h2>
-            <table>
-              <thead>
-                <tr>
-                  <th> </th>
-                  {years.map((year) => (
-                    <th key={year}>Year {year}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td><strong>Financial Goals</strong></td>
-                  {mapping.map((m) => (
-                    <td key={m.year}>{m.goalNames || '-'}</td>
-                  ))}
-                </tr>
-                <tr>
-                  <td><strong>Combined Monthly Savings</strong></td>
-                  {mapping.map((m) => (
-                    <td key={m.year}>{formatNumber(m.combinedMonthly)}</td>
-                  ))}
-                </tr>
-                <tr>
-                  <td><strong>Combined Year Savings</strong></td>
-                  {mapping.map((m) => (
-                    <td key={m.year}>{formatNumber(m.combinedYearly)}</td>
-                  ))}
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        );
-      }
+      return (
+        <div className="step active">
+          <h2>Step 2: Mapping 10-Year Goals</h2>
+          <table>
+            <thead>
+              <tr>
+                <th> </th>
+                {years.map((year) => (
+                  <th key={year}>Year {year}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Financial Goals</strong></td>
+                {mapping.map((m) => (
+                  <td key={m.year}>{m.goalNames || '-'}</td>
+                ))}
+              </tr>
+              <tr>
+                <td><strong>Combined Monthly Savings</strong></td>
+                {mapping.map((m) => (
+                  <td key={m.year}>{formatNumber(m.combinedMonthly)}</td>
+                ))}
+              </tr>
+              <tr>
+                <td><strong>Combined Yearly Savings</strong></td>
+                {mapping.map((m) => (
+                  <td key={m.year}>{formatNumber(m.combinedYearly)}</td>
+                ))}
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      );
+    }
 
-      // Main Component: 10-Year Board Calculator
-      function TenYearBoardCalculator() {
-        const [step, setStep] = useState(1);
-        const [goals, setGoals] = useState([]);
+    // Main Component for 10-Year Board Calculator
+    function TenYearBoardCalculator() {
+      const [step, setStep] = useState(1);
+      const [goals, setGoals] = useState([]);
 
-        const nextStep = () => setStep(step + 1);
-        const prevStep = () => setStep(step - 1);
+      const nextStep = () => setStep(step + 1);
+      const prevStep = () => setStep(step - 1);
 
-        return (
-          <div className="App">
-            <h1>10-Year Board Calculator</h1>
-            {step === 1 && <Step1 goals={goals} setGoals={setGoals} onNext={nextStep} />}
-            {step === 2 && <Step2 goals={goals} />}
-            {step > 1 && <button onClick={prevStep}>Back</button>}
-          </div>
-        );
-      }
+      return (
+        <div className="App">
+          <h1>10-Year Board Calculator</h1>
+          {step === 1 && <Step1 goals={goals} setGoals={setGoals} onNext={nextStep} />}
+          {step === 2 && <Step2 goals={goals} />}
+          {step > 1 && <button onClick={prevStep}>Back</button>}
+        </div>
+      );
+    }
 
-      ReactDOM.render(<TenYearBoardCalculator />, document.getElementById('root'));
-    </script>
-  </body>
+    ReactDOM.render(<TenYearBoardCalculator />, document.getElementById('root'));
+  </script>
+</body>
 </html>
