@@ -44,11 +44,6 @@
       margin: 5px;
       width: 150px;
     }
-    .result {
-      border: 1px solid #ccc;
-      padding: 15px;
-      margin-top: 20px;
-    }
   </style>
 </head>
 <body>
@@ -56,7 +51,7 @@
   <script type="text/babel">
     const { useState } = React;
 
-    // Define the eight financial values available for selection.
+    // Eight financial values for selection.
     const financialValues = [
       { id: 'financialSecurity', label: 'Financial Security' },
       { id: 'financialIndependence', label: 'Financial Independence' },
@@ -68,7 +63,7 @@
       { id: 'stability', label: 'Stability' },
     ];
 
-    // Define the goal directions available under each financial value.
+    // Goal directions for each financial value.
     const financialGoals = {
       financialSecurity: [
         { id: 'emergencyFund', label: 'Establish comprehensive emergency fund' },
@@ -105,28 +100,63 @@
       ],
     };
 
+    // The survey now starts at Step 1 (selecting financial values).
+    // Final submission posts all data (including name/email from localStorage) to Formspree.
     function App() {
+      // Steps: 1: Choose Top 5 Financial Values, 2: Choose Goal Directions, 3: Assign Timeline, 4: Timeline Visualization & Submit.
       const [step, setStep] = useState(1);
-      const [contactInfo, setContactInfo] = useState({ name: '', email: '' });
       const [selectedValues, setSelectedValues] = useState([]);
       const [selectedGoals, setSelectedGoals] = useState({});
       const [timeline, setTimeline] = useState([]);
 
-      const handleNextStep = () => setStep(step + 1);
-      const handlePrevStep = () => setStep(step - 1);
+      const nextStep = () => setStep(step + 1);
+      const prevStep = () => setStep(step - 1);
+
+      const handleSubmit = () => {
+        // Retrieve stored contact info.
+        const participantName = localStorage.getItem('participantName') || '';
+        const participantEmail = localStorage.getItem('participantEmail') || '';
+        const data = {
+          participantName,
+          participantEmail,
+          selectedValues,
+          selectedGoals,
+          timeline,
+        };
+
+        // Create a form and submit the data to Formspree.
+        const form = document.createElement("form");
+        form.method = "POST";
+        form.action = "https://formspree.io/f/meoalyae"; // Your Formspree endpoint
+
+        const addField = (name, value) => {
+          const input = document.createElement("input");
+          input.type = "hidden";
+          input.name = name;
+          input.value = value;
+          form.appendChild(input);
+        };
+
+        addField("participantName", participantName);
+        addField("participantEmail", participantEmail);
+        addField("selectedValues", JSON.stringify(selectedValues));
+        addField("selectedGoals", JSON.stringify(selectedGoals));
+        addField("timeline", JSON.stringify(timeline));
+
+        document.body.appendChild(form);
+        form.submit();
+      };
 
       const renderStep = () => {
         switch (step) {
           case 1:
-            return <Step1 contactInfo={contactInfo} setContactInfo={setContactInfo} onNext={handleNextStep} />;
+            return <Step1 selectedValues={selectedValues} setSelectedValues={setSelectedValues} onNext={nextStep} />;
           case 2:
-            return <Step2 selectedValues={selectedValues} setSelectedValues={setSelectedValues} onNext={handleNextStep} onPrev={handlePrevStep} />;
+            return <Step2 selectedValues={selectedValues} selectedGoals={selectedGoals} setSelectedGoals={setSelectedGoals} onNext={nextStep} onPrev={prevStep} />;
           case 3:
-            return <Step3 selectedValues={selectedValues} selectedGoals={selectedGoals} setSelectedGoals={setSelectedGoals} onNext={handleNextStep} onPrev={handlePrevStep} />;
+            return <Step3 selectedGoals={selectedGoals} timeline={timeline} setTimeline={setTimeline} onNext={nextStep} onPrev={prevStep} />;
           case 4:
-            return <Step4 selectedGoals={selectedGoals} timeline={timeline} setTimeline={setTimeline} onNext={handleNextStep} onPrev={handlePrevStep} />;
-          case 5:
-            return <Step5 timeline={timeline} onPrev={handlePrevStep} />;
+            return <Step4 timeline={timeline} onPrev={prevStep} onSubmit={handleSubmit} />;
           default:
             return <div>Invalid step</div>;
         }
@@ -140,19 +170,8 @@
       );
     }
 
-    function Step1({ contactInfo, setContactInfo, onNext }) {
-      const handleChange = (e) => setContactInfo({ ...contactInfo, [e.target.name]: e.target.value });
-      return (
-        <div className="step active" id="step1">
-          <h2>Step 1: Contact Information</h2>
-          <input type="text" name="name" placeholder="Name" value={contactInfo.name} onChange={handleChange} />
-          <input type="email" name="email" placeholder="Email" value={contactInfo.email} onChange={handleChange} />
-          <button onClick={onNext}>Next: Choose Financial Values</button>
-        </div>
-      );
-    }
-
-    function Step2({ selectedValues, setSelectedValues, onNext, onPrev }) {
+    // Step 1: Choose Top 5 Financial Values.
+    function Step1({ selectedValues, setSelectedValues, onNext }) {
       const toggleValue = (id) => {
         let newValues;
         if (selectedValues.includes(id)) {
@@ -169,8 +188,8 @@
       };
 
       return (
-        <div className="step active" id="step2">
-          <h2>Step 2: Choose Your Top 5 Financial Values</h2>
+        <div className="step active" id="step1">
+          <h2>Step 1: Choose Your Top 5 Financial Values</h2>
           <ul>
             {financialValues.map((value) => (
               <li key={value.id}>
@@ -181,13 +200,13 @@
               </li>
             ))}
           </ul>
-          <button onClick={onPrev}>Back</button>
           <button onClick={onNext}>Next: Choose Goal Directions</button>
         </div>
       );
     }
 
-    function Step3({ selectedValues, selectedGoals, setSelectedGoals, onNext, onPrev }) {
+    // Step 2: Choose Financial Goal Directions.
+    function Step2({ selectedValues, selectedGoals, setSelectedGoals, onNext, onPrev }) {
       const handleGoalToggle = (valueId, goalId) => {
         const currentGoals = selectedGoals[valueId] || [];
         let newGoals;
@@ -200,8 +219,8 @@
       };
 
       return (
-        <div className="step active" id="step3">
-          <h2>Step 3: Choose Financial Goal Directions</h2>
+        <div className="step active" id="step2">
+          <h2>Step 2: Choose Financial Goal Directions</h2>
           {selectedValues.map((valueId) => (
             <div key={valueId}>
               <h3>{financialValues.find((v) => v.id === valueId).label}</h3>
@@ -223,7 +242,8 @@
       );
     }
 
-    function Step4({ selectedGoals, timeline, setTimeline, onNext, onPrev }) {
+    // Step 3: Assign Timeline for Each Selected Goal.
+    function Step3({ selectedGoals, timeline, setTimeline, onNext, onPrev }) {
       // Flatten selected goals into an array for timeline assignment.
       const selectedGoalEntries = [];
       Object.keys(selectedGoals).forEach((valueId) => {
@@ -244,8 +264,8 @@
       }
 
       return (
-        <div className="step active" id="step4">
-          <h2>Step 4: Assign Your Financial Directions to a Timeline</h2>
+        <div className="step active" id="step3">
+          <h2>Step 3: Assign Your Financial Directions to a Timeline</h2>
           <table>
             <thead>
               <tr>
@@ -278,7 +298,8 @@
       );
     }
 
-    function Step5({ timeline, onPrev }) {
+    // Step 4: Timeline Visualization & Final Submission.
+    function Step4({ timeline, onPrev, onSubmit }) {
       const years = Array.from({ length: 10 }, (_, i) => i + 1);
       const goalsByYear = {};
       timeline.forEach((item) => {
@@ -291,8 +312,8 @@
       });
 
       return (
-        <div className="step active" id="step5">
-          <h2>Step 5: 10-Year Timeline Visualization</h2>
+        <div className="step active" id="step4">
+          <h2>Step 4: 10-Year Timeline Visualization</h2>
           <div className="timeline">
             {years.map((year) => (
               <div key={year} className="timeline-year">
@@ -306,7 +327,7 @@
             ))}
           </div>
           <button onClick={onPrev}>Back</button>
-          <button onClick={() => alert('Your financial roadmap has been saved!')}>Finish</button>
+          <button onClick={onSubmit}>Submit Survey</button>
         </div>
       );
     }
