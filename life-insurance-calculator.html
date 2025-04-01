@@ -120,7 +120,7 @@
             </label>
             <br />
 
-            {/* Clear my debts section */}
+            {/* If "Clear my debts" is selected */}
             {(formData.insuranceNeeds || []).includes('clearDebts') && (
               <div className="section">
                 <h3>Debt Details</h3>
@@ -147,7 +147,7 @@
               </div>
             )}
 
-            {/* Education section */}
+            {/* If "Pay for my children's education" is selected */}
             {(formData.insuranceNeeds || []).includes('education') && (
               <div className="section">
                 <h3>Children's Education Costs</h3>
@@ -163,12 +163,12 @@
               </div>
             )}
 
-            {/* Living Costs section */}
+            {/* If "Help with my family's living costs" is selected */}
             {(formData.insuranceNeeds || []).includes('livingCosts') && (
               <div className="section">
                 <h3>Family Living Costs</h3>
                 <label>
-                  Annual Living Cost Required:
+                  Annual Amount Needed:
                   <input type="number" name="livingCost" onChange={handleChange} />
                 </label>
                 <br />
@@ -179,14 +179,13 @@
                 <br />
               </div>
             )}
-
             <button onClick={onPrev}>Back</button>
             <button onClick={onNext}>Next</button>
           </div>
         );
       }
 
-      // Step 3: Savings & Investments
+      // Step 3: Savings & Investments (with Interest Rate removed)
       function Step3({ formData, setFormData, onNext, onPrev }) {
           const handleChange = (e) => {
               setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -213,7 +212,8 @@
 
       // Step 4: Calculation and Results
       function Step4({ formData, onPrev }) {
-          // Calculate Debt Coverage: Sum of all debt amounts.
+          // Calculation logic:
+          // Debt Coverage: Sum of all debt amounts from "Clear my debts"
           let debtCoverage = 0;
           if ((formData.insuranceNeeds || []).includes('clearDebts')) {
               (formData.debts || []).forEach((debt) => {
@@ -221,22 +221,20 @@
               });
           }
 
-          // Calculate Education Coverage:
-          // For each child, calculate the total cost from now until age 18 (annual cost compounded by inflation)
+          // Education Coverage: For each child, calculate total future cost from now until age 18 with inflation.
           let educationCoverage = 0;
           if ((formData.insuranceNeeds || []).includes('education')) {
               const inflation = parseFloat(formData.inflationRate || 0) / 100;
               formData.childrenAges?.forEach((age, i) => {
                   const yearsToGo = Math.max(18 - parseInt(age, 10), 0);
-                  const cost = parseFloat(formData.educationCosts[i] || 0);
-                  // Future cost for this child: cost * ((1+inflation)^years - 1)/inflation
-                  const childCost = cost * ((Math.pow(1 + inflation, yearsToGo) - 1) / (inflation || 0.0001));
+                  const annualCost = parseFloat(formData.educationCosts[i] || 0);
+                  // Future cost for a child = annualCost * ((1+inflation)^yearsToGo - 1) / inflation
+                  const childCost = annualCost * ((Math.pow(1 + inflation, yearsToGo) - 1) / (inflation || 0.0001));
                   educationCoverage += childCost;
               });
           }
 
-          // Calculate Living Cost Coverage:
-          // Annual living cost compounded over the number of years using inflation.
+          // Living Cost Coverage: Compound the annual living cost over the number of years using inflation.
           let livingCostCoverage = 0;
           if ((formData.insuranceNeeds || []).includes('livingCosts')) {
               const inflation = parseFloat(formData.inflationRate || 0) / 100;
@@ -245,28 +243,17 @@
               livingCostCoverage = L * ((Math.pow(1 + inflation, Y) - 1) / (inflation || 0.0001));
           }
 
-          // Determine the future value of current savings.
-          // For simplicity, assume the longest horizon is the maximum of the education horizon and living cost years.
-          let T_education = 0;
-          if ((formData.insuranceNeeds || []).includes('education')) {
-              formData.childrenAges?.forEach((age) => {
-                  T_education = Math.max(T_education, Math.max(18 - parseInt(age, 10), 0));
-              });
-          }
-          const T_living = (formData.insuranceNeeds || []).includes('livingCosts') ? parseFloat(formData.livingCostYears || 0) : 0;
-          const T = Math.max(T_education, T_living);
-          const interestRate = parseFloat(formData.interestRate || 0) / 100;
+          // Future value of current savings (with interest rate removed, so it's just current savings)
           const currentSavings = parseFloat(formData.currentSavings || 0);
-          const savingsFutureValue = currentSavings * Math.pow(1 + interestRate, T);
 
-          // Total Coverage Required = (Debt + Education + Living) - Future Value of Current Savings
-          const totalRequired = Math.max(debtCoverage + educationCoverage + livingCostCoverage - savingsFutureValue, 0);
+          // Total Coverage Required = (Debt + Education + Living) - Current Savings, not less than zero.
+          const totalRequired = Math.max(debtCoverage + educationCoverage + livingCostCoverage - currentSavings, 0);
 
           const results = {
               debtCoverage: formatNumber(debtCoverage),
               educationCoverage: formatNumber(educationCoverage),
               livingCostCoverage: formatNumber(livingCostCoverage),
-              totalCoverage: formatNumber(totalRequired)
+              totalCoverage: formatNumber(totalRequired),
           };
 
           return (
