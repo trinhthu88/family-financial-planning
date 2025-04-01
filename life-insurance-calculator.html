@@ -1,202 +1,152 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
+<head>
     <meta charset="UTF-8" />
     <title>Life Insurance Coverage Calculator</title>
-    <!-- Import React and ReactDOM from CDNs -->
     <script crossorigin src="https://unpkg.com/react@17/umd/react.development.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>
-    <!-- Babel for JSX transformation -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <style>
-      body {
-        font-family: Arial, sans-serif;
-        padding: 20px;
-      }
-      .App {
-        max-width: 800px;
-        margin: 0 auto;
-      }
-      input, select {
-        margin: 5px 0;
-        padding: 5px;
-        width: 250px;
-      }
-      button {
-        margin: 10px 5px;
-        padding: 10px 20px;
-        cursor: pointer;
-      }
-      .step {
-        display: none;
-      }
-      .step.active {
-        display: block;
-      }
-      .result {
-        border: 1px solid #ccc;
-        padding: 15px;
-        margin-top: 20px;
-      }
-      .section {
-        margin-bottom: 20px;
-      }
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .App { max-width: 800px; margin: 0 auto; }
+        input, select { margin: 5px 0; padding: 5px; width: 250px; }
+        button { margin: 10px 5px; padding: 10px 20px; cursor: pointer; }
+        .step { display: none; }
+        .step.active { display: block; }
+        .result { border: 1px solid #ccc; padding: 15px; margin-top: 20px; }
+        .section { margin-bottom: 20px; }
     </style>
-  </head>
-  <body>
+</head>
+<body>
     <div id="root"></div>
     <script type="text/babel">
-      const { useState } = React;
+        const { useState } = React;
 
-      // Helper to format numbers with commas
-      const formatNumber = (num) => {
-        return new Intl.NumberFormat('en-US', {
-          minimumFractionDigits: 2,
-          maximumFractionDigits: 2,
-        }).format(num);
-      };
-
-      // Step 1: About You and Your Family
-      function Step1({ formData, setFormData, onNext }) {
-        const handleChange = (e) => {
-          setFormData({ ...formData, [e.target.name]: e.target.value });
+        // Helper to format numbers with commas
+        const formatNumber = (num) => {
+            return new Intl.NumberFormat('en-US').format(num);
         };
 
-        return (
-          <div className="step active">
-            <h2>Step 1: About You and Your Family</h2>
-            <label>
-              How many children under 18 do you have?<br />
-              <input
-                type="number"
-                name="numChildren"
-                value={formData.numChildren || ''}
-                onChange={handleChange}
-              />
-            </label>
-            <button onClick={onNext}>Next</button>
-          </div>
-        );
-      }
+        // Step 1: About You and Your Family
+        function Step1({ formData, setFormData, onNext }) {
+            const handleChange = (e) => {
+                setFormData({ ...formData, [e.target.name]: e.target.value });
+            };
 
-      // Step 2: Insurance Needs
-      function Step2({ formData, setFormData, onNext, onPrev }) {
-        const handleChange = (e) => {
-          setFormData({ ...formData, [e.target.name]: e.target.value });
-        };
+            const handleNumChildren = (e) => {
+                const num = parseInt(e.target.value) || 0;
+                setFormData({ 
+                    ...formData, 
+                    numChildren: num,
+                    childrenAges: Array(num).fill(0)
+                });
+            };
 
-        return (
-          <div className="step active">
-            <h2>Step 2: Insurance Needs</h2>
-            <label>
-              Annual Living Cost:<br />
-              <input
-                type="number"
-                name="livingCost"
-                value={formData.livingCost || ''}
-                onChange={handleChange}
-              />
-            </label>
-            <br />
-            <label>
-              Number of Years:<br />
-              <input
-                type="number"
-                name="livingCostYears"
-                value={formData.livingCostYears || ''}
-                onChange={handleChange}
-              />
-            </label>
-            <button onClick={onPrev}>Back</button>
-            <button onClick={onNext}>Next</button>
-          </div>
-        );
-      }
+            const updateChildAge = (index, age) => {
+                const updatedAges = [...formData.childrenAges];
+                updatedAges[index] = age;
+                setFormData({ ...formData, childrenAges: updatedAges });
+            };
 
-      // Step 3: Savings and Investments
-      function Step3({ formData, setFormData, onNext, onPrev }) {
-        const handleChange = (e) => {
-          setFormData({ ...formData, [e.target.name]: e.target.value });
-        };
+            return (
+                <div className="step active">
+                    <h2>Step 1: About You and Your Family</h2>
+                    <label>
+                        Number of children under 18:
+                        <input type="number" name="numChildren" value={formData.numChildren || ''} onChange={handleNumChildren} />
+                    </label>
+                    {Array.from({ length: formData.numChildren || 0 }).map((_, i) => (
+                        <div key={i}>
+                            <label>
+                                Child {i + 1} Age:
+                                <input type="number" value={formData.childrenAges[i] || ''} onChange={(e) => updateChildAge(i, e.target.value)} />
+                            </label>
+                        </div>
+                    ))}
+                    <button onClick={onNext}>Next</button>
+                </div>
+            );
+        }
 
-        return (
-          <div className="step active">
-            <h2>Step 3: Savings & Investments</h2>
-            <label>
-              Current Savings:<br />
-              <input
-                type="number"
-                name="currentSavings"
-                value={formData.currentSavings || ''}
-                onChange={handleChange}
-              />
-            </label>
-            <button onClick={onPrev}>Back</button>
-            <button onClick={onNext}>Next</button>
-          </div>
-        );
-      }
+        // Step 2: Insurance Need
+        function Step2({ formData, setFormData, onNext, onPrev }) {
+            const handleChange = (e) => {
+                const { name, value } = e.target;
+                setFormData({ ...formData, [name]: value });
+            };
 
-      // Step 4: Calculation and Submission
-      function Step4({ formData, onCalculateAndSubmit, onPrev }) {
-        return (
-          <div className="step active">
-            <h2>Step 4: Calculation</h2>
-            <p>Click "Calculate and Submit" to see the estimated life insurance coverage required.</p>
-            <button onClick={onPrev}>Back</button>
-            <button onClick={onCalculateAndSubmit}>Calculate and Submit</button>
-          </div>
-        );
-      }
+            return (
+                <div className="step active">
+                    <h2>Step 2: Insurance Need</h2>
+                    <label>
+                        Annual Living Cost:
+                        <input type="number" name="livingCost" value={formData.livingCost || ''} onChange={handleChange} />
+                    </label>
+                    <label>
+                        Number of Years:
+                        <input type="number" name="livingCostYears" value={formData.livingCostYears || ''} onChange={handleChange} />
+                    </label>
+                    <button onClick={onPrev}>Back</button>
+                    <button onClick={onNext}>Next</button>
+                </div>
+            );
+        }
 
-      // Results Component
-      function Results({ results }) {
-        return (
-          <div className="result">
-            <h2>Calculation Results</h2>
-            <p><strong>Debt Coverage:</strong> {results.debtCoverage}</p>
-            <p><strong>Education Coverage:</strong> {results.educationCoverage}</p>
-            <p><strong>Living Cost Coverage:</strong> {results.livingCostCoverage}</p>
-            <p><strong>Total Insurance Cover Required:</strong> {results.totalCover}</p>
-          </div>
-        );
-      }
+        // Step 3: Savings & Investments
+        function Step3({ formData, setFormData, onNext, onPrev }) {
+            const handleChange = (e) => {
+                setFormData({ ...formData, [e.target.name]: e.target.value });
+            };
 
-      function CalculatorApp() {
-        const [step, setStep] = useState(1);
-        const [formData, setFormData] = useState({});
-        const [results, setResults] = useState(null);
+            return (
+                <div className="step active">
+                    <h2>Step 3: Savings & Investments</h2>
+                    <label>
+                        Current Savings:
+                        <input type="number" name="currentSavings" value={formData.currentSavings || ''} onChange={handleChange} />
+                    </label>
+                    <button onClick={onPrev}>Back</button>
+                    <button onClick={onNext}>Next</button>
+                </div>
+            );
+        }
 
-        const nextStep = () => setStep(step + 1);
-        const prevStep = () => setStep(step - 1);
+        // Step 4: Calculation and Submission
+        function Step4({ formData, onCalculateAndSubmit }) {
+            return (
+                <div className="step active">
+                    <h2>Step 4: Calculation</h2>
+                    <button onClick={onCalculateAndSubmit}>Calculate and Submit</button>
+                </div>
+            );
+        }
 
-        const calculateAndSubmit = () => {
-          const debtCoverage = parseFloat(formData.livingCost || 0) * parseFloat(formData.livingCostYears || 0);
-          const totalCoverRequired = Math.max(debtCoverage - parseFloat(formData.currentSavings || 0), 0);
+        // Main Calculator Component
+        function CalculatorApp() {
+            const [step, setStep] = useState(1);
+            const [formData, setFormData] = useState({});
 
-          const calcResults = {
-            debtCoverage: formatNumber(debtCoverage),
-            educationCoverage: "N/A",
-            livingCostCoverage: formatNumber(debtCoverage),
-            totalCover: formatNumber(totalCoverRequired),
-          };
+            const nextStep = () => setStep(step + 1);
+            const prevStep = () => setStep(step - 1);
 
-          setResults(calcResults);
-        };
+            const calculateAndSubmit = () => {
+                const livingCostCoverage = (formData.livingCost || 0) * (formData.livingCostYears || 0);
+                const totalCover = formatNumber(livingCostCoverage);
+                alert(`Total Insurance Cover Required: ${totalCover}`);
+            };
 
-        return (
-          <div className="App">
-            <h1>Life Insurance Coverage Calculator</h1>
-            {step === 1 && <Step1 formData={formData} setFormData={setFormData} onNext={nextStep} />}
-            {step === 2 && <Step2 formData={formData} setFormData={setFormData} onNext={nextStep} onPrev={prevStep} />}
-            {step === 3 && <Step3 formData={formData} setFormData={setFormData} onNext={nextStep} onPrev={prevStep} />}
-            {step === 4 && <Step4 formData={formData} onCalculateAndSubmit={calculateAndSubmit} onPrev={prevStep} />}
-            {results && <Results results={results} />}
-          </div>
-        );
-      }
+            return (
+                <div className="App">
+                    <h1>Life Insurance Coverage Calculator</h1>
+                    {step === 1 && <Step1 formData={formData} setFormData={setFormData} onNext={nextStep} />}
+                    {step === 2 && <Step2 formData={formData} setFormData={setFormData} onNext={nextStep} onPrev={prevStep} />}
+                    {step === 3 && <Step3 formData={formData} setFormData={setFormData} onNext={nextStep} onPrev={prevStep} />}
+                    {step === 4 && <Step4 formData={formData} onCalculateAndSubmit={calculateAndSubmit} />}
+                </div>
+            );
+        }
 
-      ReactDOM.render(<CalculatorApp />, document.getElementById('root'));
+        ReactDOM.render(<CalculatorApp />, document.getElementById('root'));
     </script>
-  </body>
+</body>
 </html>
