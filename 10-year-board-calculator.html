@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>10-Year Board Calculator</title>
+  <!-- Import React and ReactDOM from CDNs -->
+  <script crossorigin src="https://unpkg.com/react@17/umd/react.development.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>
+  <!-- Babel for JSX transformation -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    .App { max-width: 900px; margin: 0 auto; }
+    input { margin: 5px; padding: 5px; }
+    button { margin: 5px; padding: 8px 16px; cursor: pointer; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
+    .step { display: none; }
+    .step.active { display: block; }
+    .goal-list { margin-top: 10px; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+    const { useState } = React;
+
+    // Helper: Format numbers with commas (e.g., 200,000.00)
+    const formatNumber = (num) =>
+      new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(num);
+
+    // Component to input one goal
+    function GoalForm({ onAddGoal }) {
+      const initialGoal = { goalName: '', totalAmount: '', targetStartYear: '', targetCompletionYear: '', monthlySaving: '', currentProgress: '' };
+      const [goal, setGoal] = useState(initialGoal);
+
+      const handleChange = (e) => {
+        const { name, value } = e.target;
+        setGoal({ ...goal, [name]: value });
+      };
+
+      const handleAdd = () => {
+        const { goalName, totalAmount, targetStartYear, targetCompletionYear, monthlySaving, currentProgress } = goal;
+        if (!goalName || !totalAmount || !targetStartYear || !targetCompletionYear || !monthlySaving || currentProgress === '') {
+          alert("Please fill in all fields for the goal.");
+          return;
+        }
+        onAddGoal(goal);
+        setGoal(initialGoal);
+      };
+
+      return (
+        <div>
+          <h3>Add a New Goal</h3>
+          <label>
+            Goal Name:
+            <input type="text" name="goalName" value={goal.goalName} onChange={handleChange} />
+          </label><br/>
+          <label>
+            Total Amount Needed:
+            <input type="number" name="totalAmount" value={goal.totalAmount} onChange={handleChange} />
+          </label><br/>
+          <label>
+            Target Start Year (1-10):
+            <input type="number" name="targetStartYear" value={goal.targetStartYear} onChange={handleChange} />
+          </label><br/>
+          <label>
+            Target Completion Year (1-10):
+            <input type="number" name="targetCompletionYear" value={goal.targetCompletionYear} onChange={handleChange} />
+          </label><br/>
+          <label>
+            Total Monthly Saving Amount:
+            <input type="number" name="monthlySaving" value={goal.monthlySaving} onChange={handleChange} />
+          </label><br/>
+          <label>
+            Current Progress:
+            <input type="number" name="currentProgress" value={goal.currentProgress} onChange={handleChange} />
+          </label><br/>
+          <button onClick={handleAdd}>Add Goal</button>
+        </div>
+      );
+    }
+
+    // Step 1: Align and Prioritize Goals
+    function Step1({ goals, setGoals, onNext }) {
+      const addGoal = (goal) => {
+        setGoals([...goals, goal]);
+      };
+
+      return (
+        <div className="step active">
+          <h2>Step 1: Align and Prioritize Goals</h2>
+          <GoalForm onAddGoal={addGoal} />
+          {goals.length > 0 && (
+            <div className="goal-list">
+              <h3>Your Goals:</h3>
+              <ul>
+                {goals.map((g, i) => (
+                  <li key={i}>
+                    <strong>{g.goalName}</strong> - Total: {g.totalAmount}, Start: {g.targetStartYear}, End: {g.targetCompletionYear}, Monthly Saving: {g.monthlySaving}, Progress: {g.currentProgress}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+          <button onClick={onNext}>Next</button>
+        </div>
+      );
+    }
+
+    // Step 2: Mapping 10-Year Goals
+    function Step2({ goals }) {
+      const years = Array.from({ length: 10 }, (_, i) => i + 1);
+      // For each year, collect goals that are active (targetStartYear <= year <= targetCompletionYear)
+      const mapping = years.map((year) => {
+        const activeGoals = goals.filter((g) => {
+          const start = parseInt(g.targetStartYear, 10);
+          const end = parseInt(g.targetCompletionYear, 10);
+          return year >= start && year <= end;
+        });
+        const goalNames = activeGoals.map(g => g.goalName).join(', ');
+        const totalMonthly = activeGoals.reduce((acc, g) => acc + parseFloat(g.monthlySaving || 0), 0);
+        return { year, goalNames, totalMonthly };
+      });
+
+      return (
+        <div className="step active">
+          <h2>Step 2: Mapping 10-Year Goals</h2>
+          <table>
+            <thead>
+              <tr>
+                {years.map((year) => (
+                  <th key={year}>Year {year}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                {mapping.map((m) => (
+                  <td key={m.year}>{m.goalNames}</td>
+                ))}
+              </tr>
+              <tr>
+                {mapping.map((m) => (
+                  <td key={m.year}>Monthly Savings: {formatNumber(m.totalMonthly)}</td>
+                ))}
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      );
+    }
+
+    // Main Component: 10-Year Board Calculator
+    function TenYearBoardCalculator() {
+      const [step, setStep] = useState(1);
+      const [goals, setGoals] = useState([]);
+
+      const nextStep = () => setStep(step + 1);
+      const prevStep = () => setStep(step - 1);
+
+      return (
+        <div className="App">
+          <h1>10-Year Board Calculator</h1>
+          {step === 1 && <Step1 goals={goals} setGoals={setGoals} onNext={nextStep} />}
+          {step === 2 && <Step2 goals={goals} />}
+          {step > 1 && <button onClick={prevStep}>Back</button>}
+        </div>
+      );
+    }
+
+    ReactDOM.render(<TenYearBoardCalculator />, document.getElementById('root'));
+  </script>
+</body>
+</html>
