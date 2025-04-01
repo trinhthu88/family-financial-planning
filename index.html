@@ -1,26 +1,67 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <title>Education Planning Calculator - Home</title>
-    <style>
-      body {
-        font-family: Arial, sans-serif;
-        padding: 20px;
-        text-align: center;
-      }
-      button {
-        padding: 10px 20px;
-        font-size: 16px;
-        cursor: pointer;
-      }
-    </style>
-  </head>
-  <body>
-    <h1>Welcome to the Education Planning Calculator</h1>
-    <p>
-      Plan for your child's education by estimating costs, evaluating your savings strategy, and identifying any savings gaps.
-    </p>
-    <button onclick="window.location.href='calculator.html'">Go to Calculator</button>
-  </body>
+<head>
+  <meta charset="UTF-8">
+  <title>Family Financial Workshop Survey</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      text-align: center;
+    }
+    .container {
+      max-width: 600px;
+      margin: auto;
+    }
+    input {
+      display: block;
+      margin: 10px 0;
+      padding: 8px;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    button {
+      padding: 10px 20px;
+      margin: 10px 5px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Family Financial Workshop Survey</h1>
+    <label>
+      Participant Name:
+      <input type="text" id="participantName" placeholder="Enter your name">
+    </label>
+    <label>
+      Email:
+      <input type="email" id="participantEmail" placeholder="Enter your email">
+    </label>
+    <div>
+      <button onclick="goToFinancialValues()">Go to Financial Values Survey</button>
+      <button onclick="goToEducationCalculator()">Go to Education Planning Calculator</button>
+    </div>
+  </div>
+  <script>
+    function saveData() {
+      const name = document.getElementById('participantName').value;
+      const email = document.getElementById('participantEmail').value;
+      // Save data to local storage so that subsequent pages can retrieve it if needed.
+      localStorage.setItem('participantName', name);
+      localStorage.setItem('participantEmail', email);
+    }
+    function goToFinancialValues() {
+      saveData();
+      // Navigate to the Financial Values Survey page.
+      window.location.href = 'financial-values.html';
+    }
+    function goToEducationCalculator() {
+      saveData();
+      // Navigate to the Education Planning Calculator page.
+      window.location.href = 'education-planning-calculator.html';
+    }
+  </script>
+</body>
 </html>
