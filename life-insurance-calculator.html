@@ -155,7 +155,62 @@
                 </div>
             );
         }
+    // Step 3: Savings & Investments
+        function Step3({ formData, setFormData, onNext, onPrev }) {
+            const handleChange = (e) => {
+                setFormData({ ...formData, [e.target.name]: e.target.value });
+            };
 
+            return (
+                <div className="step active">
+                    <h2>Step 3: Savings & Investments</h2>
+                    <label>
+                        Current Savings:
+                        <input type="number" name="currentSavings" onChange={handleChange} />
+                    </label><br />
+                    <label>
+                        Annual Interest Rate (%):
+                        <input type="number" name="interestRate" onChange={handleChange} />
+                    </label><br />
+                    <label>
+                        Annual Inflation Rate (%):
+                        <input type="number" name="inflationRate" onChange={handleChange} />
+                    </label><br />
+                    <button onClick={onPrev}>Back</button>
+                    <button onClick={onNext}>Next</button>
+                </div>
+            );
+        }
+
+        // Step 4: Calculation and Result
+        function Step4({ formData, onPrev }) {
+            const calculateResult = () => {
+                const debtCoverage = parseFloat(formData.currentSavings || 0);
+                const educationCoverage = (formData.educationCosts || []).reduce((acc, cost) => acc + parseFloat(cost || 0), 0);
+                const livingCostCoverage = parseFloat(formData.livingCost || 0) * parseFloat(formData.livingCostYears || 0);
+                const totalCoverage = debtCoverage + educationCoverage + livingCostCoverage;
+
+                return {
+                    debtCoverage: formatNumber(debtCoverage),
+                    educationCoverage: formatNumber(educationCoverage),
+                    livingCostCoverage: formatNumber(livingCostCoverage),
+                    totalCoverage: formatNumber(totalCoverage)
+                };
+            };
+
+            const results = calculateResult();
+
+            return (
+                <div className="step active">
+                    <h2>Step 4: Results</h2>
+                    <p>Debt Coverage: {results.debtCoverage}</p>
+                    <p>Education Coverage: {results.educationCoverage}</p>
+                    <p>Living Cost Coverage: {results.livingCostCoverage}</p>
+                    <p>Total Coverage Required: {results.totalCoverage}</p>
+                    <button onClick={onPrev}>Back</button>
+                </div>
+            );
+        }
         // Main Calculator Component
         function CalculatorApp() {
             const [step, setStep] = useState(1);
