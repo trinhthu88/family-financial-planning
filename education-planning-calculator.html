@@ -244,8 +244,10 @@
         const nextStep = () => setStep(step + 1);
         const prevStep = () => setStep(step - 1);
 
-        // This function calculates the results and submits the data via fetch.
+        // This function calculates the results, sets them in state (so they're displayed),
+        // and then submits the data to Formspree via fetch.
         const calculateAndSubmit = () => {
+          // Parse the inputs.
           const currentAge = parseFloat(formData.currentAge);
           const targetAge = parseFloat(formData.targetAge);
           const annualCost = parseFloat(formData.annualCost);
@@ -254,6 +256,21 @@
           const annualReturn = parseFloat(formData.annualReturn) / 100;
           const inflationRate = parseFloat(formData.inflationRate) / 100;
           const coveragePercent = parseFloat(formData.coveragePercent);
+
+          // Check for required fields.
+          if (
+            isNaN(currentAge) ||
+            isNaN(targetAge) ||
+            isNaN(annualCost) ||
+            isNaN(currentSavings) ||
+            isNaN(monthlyContribution) ||
+            isNaN(annualReturn) ||
+            isNaN(inflationRate) ||
+            isNaN(coveragePercent)
+          ) {
+            alert("Please fill in all fields correctly.");
+            return;
+          }
 
           // Calculate years until education begins and assume education lasts 4 years.
           const yearsUntilEducation = targetAge - currentAge;
@@ -264,17 +281,18 @@
           }
           const amountToCover = (coveragePercent / 100) * totalCost;
 
-          // Calculate projected savings
+          // Calculate projected savings.
           const monthlyReturnValue = Math.pow(1 + annualReturn, 1 / 12) - 1;
           const months = yearsUntilEducation * 12;
           const fvCurrent = currentSavings * Math.pow(1 + annualReturn, yearsUntilEducation);
           const fvContributions = monthlyContribution * ((Math.pow(1 + monthlyReturnValue, months) - 1) / monthlyReturnValue);
           const projectedSavings = fvCurrent + fvContributions;
 
-          // Calculate deficit and additional monthly saving required
+          // Calculate deficit and additional monthly saving required.
           const deficit = Math.max(amountToCover - projectedSavings, 0);
           const additionalMonthly = deficit * monthlyReturnValue / (Math.pow(1 + monthlyReturnValue, months) - 1);
 
+          // Create a results object with formatted numbers.
           const calcResults = {
             estimatedTotalCost: formatNumber(totalCost),
             totalCoverageAmount: formatNumber(amountToCover),
@@ -283,7 +301,7 @@
             additionalMonthlySaving: formatNumber(additionalMonthly)
           };
 
-          // Display the results on the page.
+          // Set the results state to display them.
           setResults(calcResults);
 
           // Retrieve contact info from localStorage.
@@ -296,6 +314,8 @@
             results: calcResults,
           };
 
+          console.log("Submitting data:", data);
+
           // Submit the data to Formspree via fetch.
           fetch("https://formspree.io/f/meoalyae", {
             method: "POST",
@@ -307,7 +327,7 @@
             .then(response => response.json())
             .then(data => {
               console.log("Success:", data);
-              // Optionally, show a message that submission was successful.
+              // Optionally, display a success message.
             })
             .catch((error) => {
               console.error("Error:", error);
@@ -323,7 +343,7 @@
             case 3:
               return <Step3 formData={formData} setFormData={setFormData} onNext={nextStep} onPrev={prevStep} />;
             case 4:
-              return <Step4 formData={formData} setFormData={setFormData} onSubmit={calculateAndSubmit} onPrev={prevStep} />;
+              return <Step4 formData={formData} setFormData={setFormData} onCalculateAndSubmit={calculateAndSubmit} onPrev={prevStep} />;
             default:
               return <div>Invalid step</div>;
           }
