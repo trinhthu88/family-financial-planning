@@ -1,72 +1,81 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Family Financial Workshop Survey</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      padding: 20px;
-      text-align: center;
-    }
-    .container {
-      max-width: 600px;
-      margin: auto;
-    }
-    input {
-      display: block;
-      margin: 10px 0;
-      padding: 8px;
-      width: 100%;
-      box-sizing: border-box;
-    }
-    button {
-      padding: 10px 20px;
-      margin: 10px 5px;
-      font-size: 16px;
-      cursor: pointer;
-    }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <h1>Family Financial Workshop Survey</h1>
-    <label>
-      Participant Name:
-      <input type="text" id="participantName" placeholder="Enter your name">
-    </label>
-    <label>
-      Email:
-      <input type="email" id="participantEmail" placeholder="Enter your email">
-    </label>
-    <div>
-      <button onclick="goToFinancialValues()">Go to Financial Values Survey</button>
-      <button onclick="goToEducationCalculator()">Go to Education Planning Calculator</button>
+  <head>
+    <meta charset="UTF-8">
+    <title>Family Financial Workshop Survey</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        padding: 20px;
+        text-align: center;
+      }
+      .container {
+        max-width: 600px;
+        margin: auto;
+      }
+      input {
+        display: block;
+        margin: 10px 0;
+        padding: 8px;
+        width: 100%;
+        box-sizing: border-box;
+      }
+      button {
+        padding: 10px 20px;
+        margin: 10px 5px;
+        font-size: 16px;
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Family Financial Workshop Survey</h1>
+      <label>
+        Participant Name:
+        <input type="text" id="participantName" placeholder="Enter your name">
+      </label>
+      <label>
+        Email:
+        <input type="email" id="participantEmail" placeholder="Enter your email">
+      </label>
+      <div>
+        <button onclick="goToFinancialValues()">Go to Financial Values Survey</button>
+        <button onclick="goToEducationPlanning()">Go to Education Planning Calculator</button>
+        <button onclick="goToLifeInsurance()">Go to Life Insurance Coverage Calculator</button>
+      </div>
     </div>
-  </div>
-  <script>
-    function saveData() {
-      const name = document.getElementById('participantName').value;
-      const email = document.getElementById('participantEmail').value;
-      if (!name || !email) {
-        alert("Please enter both name and email.");
-        return false;
+    <script>
+      function saveData() {
+        const name = document.getElementById('participantName').value;
+        const email = document.getElementById('participantEmail').value;
+        if (!name || !email) {
+          alert("Please enter both name and email.");
+          return false;
+        }
+        // Save contact info to localStorage for subsequent pages.
+        localStorage.setItem('participantName', name);
+        localStorage.setItem('participantEmail', email);
+        return true;
       }
-      // Save contact info to localStorage so that other pages can retrieve it.
-      localStorage.setItem('participantName', name);
-      localStorage.setItem('participantEmail', email);
-      return true;
-    }
-    function goToFinancialValues() {
-      if (saveData()) {
-        window.location.href = 'financial-values.html';
+      
+      function goToFinancialValues() {
+        if (saveData()) {
+          window.location.href = 'financial-values.html';  // Change this to the correct path to Financial Value Survey page
+        }
       }
-    }
-    function goToEducationCalculator() {
-      if (saveData()) {
-        window.location.href = 'education-planning-calculator.html';
+
+      function goToEducationPlanning() {
+        if (saveData()) {
+          window.location.href = 'education-planning-calculator.html';  // Change this to the correct path to Education Planning Calculator page
+        }
       }
-    }
-  </script>
-</body>
+
+      function goToLifeInsurance() {
+        if (saveData()) {
+          window.location.href = 'life-insurance-calculator.html';  // Change this to the correct path to Life Insurance Calculator page
+        }
+      }
+    </script>
+  </body>
 </html>
