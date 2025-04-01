@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Education Planning Calculator</title>
+    <!-- Import React and ReactDOM from CDNs -->
+    <script crossorigin src="https://unpkg.com/react@17/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>
+    <!-- Babel for JSX transformation -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        padding: 20px;
+      }
+      .App {
+        max-width: 800px;
+        margin: 0 auto;
+      }
+      input,
+      select {
+        margin: 5px 0;
+        padding: 5px;
+        width: 250px;
+      }
+      button {
+        margin: 10px 5px;
+        padding: 10px 20px;
+        cursor: pointer;
+      }
+      .step {
+        display: none;
+      }
+      .step.active {
+        display: block;
+      }
+      .result {
+        border: 1px solid #ccc;
+        padding: 15px;
+        margin-top: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="text/babel">
+      const { useState } = React;
+
+      // Step 1: Education Information
+      function Step1({ formData, setFormData, onNext }) {
+        const handleChange = (e) => {
+          setFormData({ ...formData, [e.target.name]: e.target.value });
+        };
+        return (
+          <div className="step active" id="step1">
+            <h2>Step 1: Education Information</h2>
+            <label>
+              Child's Name:<br />
+              <input type="text" name="childName" value={formData.childName || ''} onChange={handleChange} />
+            </label>
+            <br />
+            <label>
+              Current Age:<br />
+              <input type="number" name="currentAge" value={formData.currentAge || ''} onChange={handleChange} />
+            </label>
+            <br />
+            <label>
+              Target Education Age (e.g., University/Private High School):<br />
+              <input type="number" name="targetAge" value={formData.targetAge || ''} onChange={handleChange} />
+            </label>
+            <br />
+            <label>
+              Year Attending:<br />
+              <input type="number" name="yearAttending" value={formData.yearAttending || ''} onChange={handleChange} />
+            </label>
+            <br />
+            <button onClick={onNext}>Next</button>
+          </div>
+        );
+      }
+
+      // Step 2: Education Cost
+      function Step2({ formData, setFormData, onNext, onPrev }) {
+        const handleChange = (e) => {
+          setFormData({ ...formData, [e.target.name]: e.target.value });
+        };
+        return (
+          <div className="step active" id="step2">
+            <h2>Step 2: Education Cost</h2>
+            <label>
+              Estimated Annual Cost (in your currency):<br />
+              <input type="number" name="annualCost" value={formData.annualCost || ''} onChange={handleChange} />
+            </label>
+            <br />
+            <button onClick={onPrev}>Back</button>
+            <button onClick={onNext}>Next</button>
+          </div>
+        );
+      }
+
+      // Step 3: Savings
+      function Step3({ formData, setFormData, onNext, onPrev }) {
+        const handleChange = (e) => {
+          setFormData({ ...formData, [e.target.name]: e.target.value });
+        };
+        return (
+          <div className="step active" id="step3">
+            <h2>Step 3: Savings</h2>
+            <label>
+              Current Education Savings:<br />
+              <input type="number" name="currentSavings" value={formData.currentSavings || ''} onChange={handleChange} />
+            </label>
+            <br />
+            <label>
+              Monthly Contribution to Education Savings:<br />
+              <input type="number" name="monthlyContribution" value={formData.monthlyContribution || ''} onChange={handleChange} />
+            </label>
+            <br />
+            <label>
+              Estimated Annual Rate of Return (in %):<br />
+              <input type="number" name="annualReturn" value={formData.annualReturn || ''} onChange={handleChange} />
+            </label>
+            <br />
+            <label>
+              Annual Cost of Inflation (in %):<br />
+              <input type="number" name="inflationRate" value={formData.inflationRate || ''} onChange={handleChange} />
+            </label>
+            <br />
+            <button onClick={onPrev}>Back</button>
+            <button onClick={onNext}>Next</button>
+          </div>
+        );
+      }
+
+      // Step 4: Coverage Percentage
+      function Step4({ formData, setFormData, onNext, onPrev }) {
+        const handleChange = (e) => {
+          setFormData({ ...formData, [e.target.name]: e.target.value });
+        };
+        return (
+          <div className="step active" id="step4">
+            <h2>Step 4: Amount You Want to Cover</h2>
+            <label>
+              What percentage of the total education cost do you want to cover?<br />
+              (e.g., 100 for full coverage, 50 for half):<br />
+              <input type="number" name="coveragePercent" value={formData.coveragePercent || ''} onChange={handleChange} />
+            </label>
+            <br />
+            <button onClick={onPrev}>Back</button>
+            <button onClick={onNext}>Calculate</button>
+          </div>
+        );
+      }
+
+      // Step 5: Results & Submission
+      function Results({ formData, results, onPrev, onSubmit }) {
+        return (
+          <div className="result">
+            <h2>Results</h2>
+            <p>{results.estimatedTotalCost}</p>
+            <p>{results.totalCoverageAmount}</p>
+            <p>{results.projectedSavings}</p>
+            <p>{results.savingsDeficit}</p>
+            <p>{results.additionalMonthlySaving}</p>
+            <button onClick={onPrev}>Back</button>
+            <button onClick={onSubmit}>Submit Calculator Data</button>
+          </div>
+        );
+      }
+
+      // Main Calculator Component
+      function CalculatorApp() {
+        const [step, setStep] = useState(1);
+        const [formData, setFormData] = useState({});
+        const [results, setResults] = useState(null);
+
+        const nextStep = () => setStep(step + 1);
+        const prevStep = () => setStep(step - 1);
+
+        const calculateResults = () => {
+          // Retrieve form data
+          const currentAge = parseFloat(formData.currentAge);
+          const targetAge = parseFloat(formData.targetAge);
+          const annualCost = parseFloat(formData.annualCost);
+          const currentSavings = parseFloat(formData.currentSavings);
+          const monthlyContribution = parseFloat(formData.monthlyContribution);
+          const annualReturn = parseFloat(formData.annualReturn) / 100;
+          const inflationRate = parseFloat(formData.inflationRate) / 100;
+          const coveragePercent = parseFloat(formData.coveragePercent);
+
+          // Calculate years until education begins and assume education lasts 4 years.
+          const yearsUntilEducation = targetAge - currentAge;
+          const duration = 4;
+          let totalCost = 0;
+          for (let i = 0; i < duration; i++) {
+            totalCost += annualCost * Math.pow(1 + inflationRate, yearsUntilEducation + i);
+          }
+          const amountToCover = (coveragePercent / 100) * totalCost;
+
+          // Calculate projected savings
+          const monthlyReturnValue = Math.pow(1 + annualReturn, 1 / 12) - 1;
+          const months = yearsUntilEducation * 12;
+          const fvCurrent = currentSavings * Math.pow(1 + annualReturn, yearsUntilEducation);
+          const fvContributions = monthlyContribution * ((Math.pow(1 + monthlyReturnValue, months) - 1) / monthlyReturnValue);
+          const projectedSavings = fvCurrent + fvContributions;
+
+          // Calculate deficit and additional monthly saving required
+          const deficit = Math.max(amountToCover - projectedSavings, 0);
+          const additionalMonthly = deficit * monthlyReturnValue / (Math.pow(1 + monthlyReturnValue, months) - 1);
+
+          setResults({
+            estimatedTotalCost: `Estimated Total Education Cost: ${totalCost.toFixed(2)}`,
+            totalCoverageAmount: `Total Amount to Cover: ${amountToCover.toFixed(2)}`,
+            projectedSavings: `Projected Savings: ${projectedSavings.toFixed(2)}`,
+            savingsDeficit: `Savings Deficit: ${deficit.toFixed(2)}`,
+            additionalMonthlySaving: `Additional Monthly Saving Required: ${additionalMonthly.toFixed(2)}`,
+          });
+          nextStep();
+        };
+
+        const handleSubmit = () => {
+          // Retrieve contact info from localStorage.
+          const participantName = localStorage.getItem('participantName') || '';
+          const participantEmail = localStorage.getItem('participantEmail') || '';
+          const data = {
+            participantName,
+            participantEmail,
+            educationData: formData,
+            results: results,
+          };
+
+          // Create a form to submit the data to Formspree.
+          const form = document.createElement("form");
+          form.method = "POST";
+          form.action = "https://formspree.io/f/meoalyae";
+
+          const addField = (name, value) => {
+            const input = document.createElement("input");
+            input.type = "hidden";
+            input.name = name;
+            input.value = value;
+            form.appendChild(input);
+          };
+
+          addField("participantName", participantName);
+          addField("participantEmail", participantEmail);
+          addField("educationData", JSON.stringify(formData));
+          addField("results", JSON.stringify(results));
+
+          document.body.appendChild(form);
+          form.submit();
+        };
+
+        const renderStep = () => {
+          switch (step) {
+            case 1:
+              return <Step1 formData={formData} setFormData={setFormData} onNext={nextStep} />;
+            case 2:
+              return <Step2 formData={formData} setFormData={setFormData} onNext={nextStep} onPrev={prevStep} />;
+            case 3:
+              return <Step3 formData={formData} setFormData={setFormData} onNext={nextStep} onPrev={prevStep} />;
+            case 4:
+              return <Step4 formData={formData} setFormData={setFormData} onNext={calculateResults} onPrev={prevStep} />;
+            case 5:
+              return <Results formData={formData} results={results} onPrev={prevStep} onSubmit={handleSubmit} />;
+            default:
+              return <div>Invalid step</div>;
+          }
+        };
+
+        return (
+          <div className="App">
+            <h1>Education Planning Calculator</h1>
+            {renderStep()}
+          </div>
+        );
+      }
+
+      ReactDOM.render(<CalculatorApp />, document.getElementById('root'));
+    </script>
+  </body>
+</html>
