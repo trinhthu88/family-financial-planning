@@ -25,156 +25,165 @@
       const { useState } = React;
 
       // Helper: format number with commas (e.g., 200,000.00)
-      const formatNumber = (num) => new Intl.NumberFormat('en-US', {
+      const formatNumber = (num) =>
+        new Intl.NumberFormat('en-US', {
           minimumFractionDigits: 2,
           maximumFractionDigits: 2,
-      }).format(num);
+        }).format(num);
 
       // Step 1: About You and Your Family
       function Step1({ formData, setFormData, onNext }) {
-          const handleNumChildren = (e) => {
-              const num = parseInt(e.target.value, 10) || 0;
-              setFormData({
-                  ...formData,
-                  numChildren: num,
-                  childrenAges: Array(num).fill(0),
-                  educationCosts: Array(num).fill(0)
-              });
-          };
+        const handleNumChildren = (e) => {
+          const num = parseInt(e.target.value, 10) || 0;
+          setFormData({
+            ...formData,
+            numChildren: num,
+            childrenAges: Array(num).fill(0),
+            educationCosts: Array(num).fill(0)
+          });
+        };
 
-          const updateChildAge = (index, age) => {
-              const updatedAges = [...formData.childrenAges];
-              updatedAges[index] = age;
-              setFormData({ ...formData, childrenAges: updatedAges });
-          };
+        const updateChildAge = (index, age) => {
+          const updatedAges = [...formData.childrenAges];
+          updatedAges[index] = age;
+          setFormData({ ...formData, childrenAges: updatedAges });
+        };
 
-          return (
-              <div className="step active">
-                  <h2>Step 1: About You and Your Family</h2>
-                  <label>
-                      Number of children under 18:
-                      <input type="number" value={formData.numChildren || ''} onChange={handleNumChildren} />
-                  </label>
-                  {Array.from({ length: formData.numChildren || 0 }).map((_, i) => (
-                      <div key={i}>
-                          <label>
-                              Child {i + 1} Current Age:
-                              <input type="number" value={formData.childrenAges[i] || ''} onChange={(e) => updateChildAge(i, e.target.value)} />
-                          </label>
-                      </div>
-                  ))}
-                  <button onClick={onNext}>Next</button>
+        return (
+          <div className="step active">
+            <h2>Step 1: About You and Your Family</h2>
+            <label>
+              Number of children under 18:
+              <input type="number" value={formData.numChildren || ''} onChange={handleNumChildren} />
+            </label>
+            {Array.from({ length: formData.numChildren || 0 }).map((_, i) => (
+              <div key={i}>
+                <label>
+                  Child {i + 1} Current Age:
+                  <input type="number" value={formData.childrenAges[i] || ''} onChange={(e) => updateChildAge(i, e.target.value)} />
+                </label>
               </div>
-          );
+            ))}
+            <button onClick={onNext}>Next</button>
+          </div>
+        );
       }
 
       // Step 2: Insurance Needs
       function Step2({ formData, setFormData, onNext, onPrev }) {
-          const toggleNeed = (need) => {
-              const needs = formData.insuranceNeeds || [];
-              if (needs.includes(need)) {
-                  setFormData({ ...formData, insuranceNeeds: needs.filter((n) => n !== need) });
-              } else {
-                  setFormData({ ...formData, insuranceNeeds: [...needs, need] });
-              }
-          };
+        const toggleNeed = (need) => {
+          const needs = formData.insuranceNeeds || [];
+          if (needs.includes(need)) {
+            setFormData({ ...formData, insuranceNeeds: needs.filter((n) => n !== need) });
+          } else {
+            setFormData({ ...formData, insuranceNeeds: [...needs, need] });
+          }
+        };
 
-          // For "Clear my debts": update debt details.
-          const updateDebt = (index, field, value) => {
-              const debts = [...(formData.debts || [])];
-              debts[index] = { ...debts[index], [field]: value };
-              setFormData({ ...formData, debts });
-          };
+        // For "Clear my debts"
+        const updateDebt = (index, field, value) => {
+          const debts = [...(formData.debts || [])];
+          debts[index] = { ...debts[index], [field]: value };
+          setFormData({ ...formData, debts });
+        };
 
-          const addDebt = () => {
-              const debts = formData.debts || [];
-              setFormData({ ...formData, debts: [...debts, { type: '', amount: '' }] });
-          };
+        const addDebt = () => {
+          const debts = formData.debts || [];
+          setFormData({ ...formData, debts: [...debts, { type: '', amount: '' }] });
+        };
 
-          // For "Pay for my children's education": update each child's annual cost.
-          const updateEducationCost = (index, value) => {
-              const educationCosts = [...(formData.educationCosts || [])];
-              educationCosts[index] = value;
-              setFormData({ ...formData, educationCosts });
-          };
+        // For "Pay for my children's education"
+        const updateEducationCost = (index, value) => {
+          const educationCosts = [...(formData.educationCosts || [])];
+          educationCosts[index] = value;
+          setFormData({ ...formData, educationCosts });
+        };
 
-          const handleChange = (e) => {
-              setFormData({ ...formData, [e.target.name]: e.target.value });
-          };
+        const handleChange = (e) => {
+          setFormData({ ...formData, [e.target.name]: e.target.value });
+        };
 
-          return (
-              <div className="step active">
-                  <h2>Step 2: Insurance Needs</h2>
-                  <p>Select reasons for life insurance (you may choose more than one):</p>
-                  <label>
-                      <input type="checkbox" onChange={() => toggleNeed('clearDebts')} /> Clear my debts
-                  </label><br />
-                  <label>
-                      <input type="checkbox" onChange={() => toggleNeed('education')} /> Pay for my children's education
-                  </label><br />
-                  <label>
-                      <input type="checkbox" onChange={() => toggleNeed('livingCosts')} /> Help with my family's living costs
-                  </label><br />
+        return (
+          <div className="step active">
+            <h2>Step 2: Insurance Needs</h2>
+            <p>Select reasons for life insurance (select all that apply):</p>
+            <label>
+              <input type="checkbox" onChange={() => toggleNeed('clearDebts')} /> Clear my debts
+            </label>
+            <br />
+            <label>
+              <input type="checkbox" onChange={() => toggleNeed('education')} /> Pay for my children's education
+            </label>
+            <br />
+            <label>
+              <input type="checkbox" onChange={() => toggleNeed('livingCosts')} /> Help with my family's living costs
+            </label>
+            <br />
 
-                  {/* If Clear my debts is selected */}
-                  {(formData.insuranceNeeds || []).includes('clearDebts') && (
-                      <div className="section">
-                          <h3>Debt Details</h3>
-                          {formData.debts?.map((debt, index) => (
-                              <div key={index}>
-                                  <label>
-                                      Type of Debt:
-                                      <select value={debt.type} onChange={(e) => updateDebt(index, 'type', e.target.value)}>
-                                          <option value="">Select</option>
-                                          <option value="loan">Loan</option>
-                                          <option value="investment">Investment Loan</option>
-                                          <option value="property">Property Loan</option>
-                                      </select>
-                                  </label><br />
-                                  <label>
-                                      Amount Owing:
-                                      <input type="number" value={debt.amount} onChange={(e) => updateDebt(index, 'amount', e.target.value)} />
-                                  </label><br />
-                              </div>
-                          ))}
-                          <button onClick={addDebt}>Add Another Debt</button>
-                      </div>
-                  )}
-
-                  {/* If Pay for my children's education is selected */}
-                  {(formData.insuranceNeeds || []).includes('education') && (
-                      <div className="section">
-                          <h3>Children's Education Costs</h3>
-                          {Array.from({ length: formData.numChildren || 0 }).map((_, i) => (
-                              <div key={i}>
-                                  <label>
-                                      Child {i + 1} Annual Average Cost:
-                                      <input type="number" value={formData.educationCosts[i] || ''} onChange={(e) => updateEducationCost(i, e.target.value)} />
-                                  </label><br />
-                              </div>
-                          ))}
-                      </div>
-                  )}
-
-                  {/* If Help with my family's living costs is selected */}
-                  {(formData.insuranceNeeds || []).includes('livingCosts') && (
-                      <div className="section">
-                          <h3>Family Living Costs</h3>
-                          <label>
-                              Annual Amount Needed:
-                              <input type="number" name="livingCost" onChange={handleChange} />
-                          </label><br />
-                          <label>
-                              For How Many Years:
-                              <input type="number" name="livingCostYears" onChange={handleChange} />
-                          </label><br />
-                      </div>
-                  )}
-
-                  <button onClick={onPrev}>Back</button>
-                  <button onClick={onNext}>Next</button>
+            {/* Clear my debts section */}
+            {(formData.insuranceNeeds || []).includes('clearDebts') && (
+              <div className="section">
+                <h3>Debt Details</h3>
+                {formData.debts?.map((debt, index) => (
+                  <div key={index}>
+                    <label>
+                      Type of Debt:
+                      <select value={debt.type} onChange={(e) => updateDebt(index, 'type', e.target.value)}>
+                        <option value="">Select</option>
+                        <option value="loan">Loan</option>
+                        <option value="investment">Investment Loan</option>
+                        <option value="property">Property Loan</option>
+                      </select>
+                    </label>
+                    <br />
+                    <label>
+                      Amount Owing:
+                      <input type="number" value={debt.amount} onChange={(e) => updateDebt(index, 'amount', e.target.value)} />
+                    </label>
+                    <br />
+                  </div>
+                ))}
+                <button onClick={addDebt}>Add Another Debt</button>
               </div>
-          );
+            )}
+
+            {/* Education section */}
+            {(formData.insuranceNeeds || []).includes('education') && (
+              <div className="section">
+                <h3>Children's Education Costs</h3>
+                {Array.from({ length: formData.numChildren || 0 }).map((_, i) => (
+                  <div key={i}>
+                    <label>
+                      Child {i + 1} Annual Average Cost:
+                      <input type="number" value={formData.educationCosts[i] || ''} onChange={(e) => updateEducationCost(i, e.target.value)} />
+                    </label>
+                    <br />
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Living Costs section */}
+            {(formData.insuranceNeeds || []).includes('livingCosts') && (
+              <div className="section">
+                <h3>Family Living Costs</h3>
+                <label>
+                  Annual Living Cost Required:
+                  <input type="number" name="livingCost" onChange={handleChange} />
+                </label>
+                <br />
+                <label>
+                  For How Many Years:
+                  <input type="number" name="livingCostYears" onChange={handleChange} />
+                </label>
+                <br />
+              </div>
+            )}
+
+            <button onClick={onPrev}>Back</button>
+            <button onClick={onNext}>Next</button>
+          </div>
+        );
       }
 
       // Step 3: Savings & Investments
@@ -189,62 +198,80 @@
                   <label>
                       Annual Interest Rate (%):
                       <input type="number" name="interestRate" onChange={handleChange} />
-                  </label><br />
+                  </label>
+                  <br />
                   <label>
                       Annual Inflation Rate (%):
                       <input type="number" name="inflationRate" onChange={handleChange} />
-                  </label><br />
+                  </label>
+                  <br />
                   <label>
                       Current Savings:
                       <input type="number" name="currentSavings" onChange={handleChange} />
-                  </label><br />
+                  </label>
+                  <br />
                   <button onClick={onPrev}>Back</button>
                   <button onClick={onNext}>Next</button>
               </div>
           );
       }
 
-      // Step 4: Calculation and Result
+      // Step 4: Calculation and Results
       function Step4({ formData, onPrev }) {
-          // Calculation logic:
-          // Debt Coverage: Sum of debt amounts (assume current debt amounts are as entered)
+          // Calculate Debt Coverage: Sum of all debt amounts.
           let debtCoverage = 0;
           if ((formData.insuranceNeeds || []).includes('clearDebts')) {
               (formData.debts || []).forEach((debt) => {
                   debtCoverage += parseFloat(debt.amount || 0);
               });
           }
-          // Education Coverage: For each child, cover the annual cost from now until they turn 18, with inflation adjustment.
+
+          // Calculate Education Coverage:
+          // For each child, calculate the total cost from now until age 18 (annual cost compounded by inflation)
           let educationCoverage = 0;
           if ((formData.insuranceNeeds || []).includes('education')) {
-              const r = parseFloat(formData.inflationRate || 0) / 100;
+              const inflation = parseFloat(formData.inflationRate || 0) / 100;
               formData.childrenAges?.forEach((age, i) => {
                   const yearsToGo = Math.max(18 - parseInt(age, 10), 0);
-                  // Sum over years: cost * ((1+r)^years - 1) / r
                   const cost = parseFloat(formData.educationCosts[i] || 0);
-                  const totalForChild = cost * ((Math.pow(1 + r, yearsToGo) - 1) / r);
-                  educationCoverage += totalForChild;
+                  // Future cost for this child: cost * ((1+inflation)^years - 1)/inflation
+                  const childCost = cost * ((Math.pow(1 + inflation, yearsToGo) - 1) / (inflation || 0.0001));
+                  educationCoverage += childCost;
               });
           }
-          // Living Cost Coverage: Annual living cost for a given number of years, inflated over that period.
+
+          // Calculate Living Cost Coverage:
+          // Annual living cost compounded over the number of years using inflation.
           let livingCostCoverage = 0;
           if ((formData.insuranceNeeds || []).includes('livingCosts')) {
-              const r = parseFloat(formData.inflationRate || 0) / 100;
+              const inflation = parseFloat(formData.inflationRate || 0) / 100;
               const L = parseFloat(formData.livingCost || 0);
               const Y = parseFloat(formData.livingCostYears || 0);
-              // Total = L * ((1+r)^Y - 1) / r
-              livingCostCoverage = L * ((Math.pow(1 + r, Y) - 1) / r);
+              livingCostCoverage = L * ((Math.pow(1 + inflation, Y) - 1) / (inflation || 0.0001));
           }
 
-          // Total required cover is the sum of the three components minus current savings.
+          // Determine the future value of current savings.
+          // For simplicity, assume the longest horizon is the maximum of the education horizon and living cost years.
+          let T_education = 0;
+          if ((formData.insuranceNeeds || []).includes('education')) {
+              formData.childrenAges?.forEach((age) => {
+                  T_education = Math.max(T_education, Math.max(18 - parseInt(age, 10), 0));
+              });
+          }
+          const T_living = (formData.insuranceNeeds || []).includes('livingCosts') ? parseFloat(formData.livingCostYears || 0) : 0;
+          const T = Math.max(T_education, T_living);
+          const interestRate = parseFloat(formData.interestRate || 0) / 100;
           const currentSavings = parseFloat(formData.currentSavings || 0);
-          const totalRequired = Math.max(debtCoverage + educationCoverage + livingCostCoverage - currentSavings, 0);
+          const savingsFutureValue = currentSavings * Math.pow(1 + interestRate, T);
+
+          // Total Coverage Required = (Debt + Education + Living) - Future Value of Current Savings
+          const totalRequired = Math.max(debtCoverage + educationCoverage + livingCostCoverage - savingsFutureValue, 0);
 
           const results = {
               debtCoverage: formatNumber(debtCoverage),
               educationCoverage: formatNumber(educationCoverage),
               livingCostCoverage: formatNumber(livingCostCoverage),
-              totalCoverage: formatNumber(totalRequired),
+              totalCoverage: formatNumber(totalRequired)
           };
 
           return (
