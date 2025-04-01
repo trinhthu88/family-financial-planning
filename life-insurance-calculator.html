@@ -27,10 +27,6 @@
 
         // Step 1: About You and Your Family
         function Step1({ formData, setFormData, onNext }) {
-            const handleChange = (e) => {
-                setFormData({ ...formData, [e.target.name]: e.target.value });
-            };
-
             const handleNumChildren = (e) => {
                 const num = parseInt(e.target.value) || 0;
                 setFormData({
@@ -52,7 +48,7 @@
                     <h2>Step 1: About You and Your Family</h2>
                     <label>
                         Number of children under 18:
-                        <input type="number" name="numChildren" value={formData.numChildren || ''} onChange={handleNumChildren} />
+                        <input type="number" value={formData.numChildren || ''} onChange={handleNumChildren} />
                     </label>
                     {Array.from({ length: formData.numChildren || 0 }).map((_, i) => (
                         <div key={i}>
@@ -78,25 +74,21 @@
                 }
             };
 
+            const addDebt = () => {
+                const debts = formData.debts || [];
+                setFormData({ ...formData, debts: [...debts, { type: '', amount: '' }] });
+            };
+
             const updateDebt = (index, field, value) => {
                 const debts = [...(formData.debts || [])];
                 debts[index] = { ...debts[index], [field]: value };
                 setFormData({ ...formData, debts });
             };
 
-            const addDebt = () => {
-                const debts = formData.debts || [];
-                setFormData({ ...formData, debts: [...debts, { type: '', amount: '' }] });
-            };
-
             const updateEducationCost = (index, value) => {
                 const educationCosts = [...(formData.educationCosts || [])];
                 educationCosts[index] = value;
                 setFormData({ ...formData, educationCosts });
-            };
-
-            const handleChange = (e) => {
-                setFormData({ ...formData, [e.target.name]: e.target.value });
             };
 
             return (
@@ -112,9 +104,8 @@
                         <input type="checkbox" onChange={() => toggleNeed('livingCosts')} /> Help with my family's living costs
                     </label><br />
 
-                    {/* Clear Debts */}
                     {(formData.insuranceNeeds || []).includes('clearDebts') && (
-                        <div className="section">
+                        <div>
                             <h3>Debt Details</h3>
                             {formData.debts?.map((debt, index) => (
                                 <div key={index}>
@@ -134,14 +125,13 @@
                         </div>
                     )}
 
-                    {/* Children's Education Costs */}
                     {(formData.insuranceNeeds || []).includes('education') && (
-                        <div className="section">
-                            <h3>Education Costs</h3>
+                        <div>
+                            <h3>Children's Education Costs</h3>
                             {Array.from({ length: formData.numChildren || 0 }).map((_, i) => (
                                 <div key={i}>
                                     <label>
-                                        Child {i + 1} Annual Education Cost:
+                                        Child {i + 1} Annual Cost:
                                         <input type="number" value={formData.educationCosts[i] || ''} onChange={(e) => updateEducationCost(i, e.target.value)} />
                                     </label><br />
                                 </div>
@@ -149,25 +139,40 @@
                         </div>
                     )}
 
-                    {/* Living Cost */}
                     {(formData.insuranceNeeds || []).includes('livingCosts') && (
-                        <div className="section">
+                        <div>
                             <h3>Family Living Costs</h3>
                             <label>Annual Living Cost:
-                                <input type="number" name="livingCost" onChange={handleChange} />
+                                <input type="number" name="livingCost" onChange={(e) => setFormData({ ...formData, livingCost: e.target.value })} />
                             </label><br />
                             <label>Number of Years:
-                                <input type="number" name="livingCostYears" onChange={handleChange} />
+                                <input type="number" name="livingCostYears" onChange={(e) => setFormData({ ...formData, livingCostYears: e.target.value })} />
                             </label><br />
                         </div>
                     )}
-
                     <button onClick={onPrev}>Back</button>
                     <button onClick={onNext}>Next</button>
                 </div>
             );
         }
-        // Remaining Steps to be continued...
+
+        // Main Calculator Component
+        function CalculatorApp() {
+            const [step, setStep] = useState(1);
+            const [formData, setFormData] = useState({});
+            const nextStep = () => setStep(step + 1);
+            const prevStep = () => setStep(step - 1);
+
+            return (
+                <div className="App">
+                    <h1>Life Insurance Coverage Calculator</h1>
+                    {step === 1 && <Step1 formData={formData} setFormData={setFormData} onNext={nextStep} />}
+                    {step === 2 && <Step2 formData={formData} setFormData={setFormData} onNext={nextStep} onPrev={prevStep} />}
+                </div>
+            );
+        }
+
+        ReactDOM.render(<CalculatorApp />, document.getElementById('root'));
     </script>
 </body>
 </html>
