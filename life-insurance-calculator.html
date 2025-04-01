@@ -22,10 +22,8 @@
     <script type="text/babel">
         const { useState } = React;
 
-        // Helper to format numbers with commas
-        const formatNumber = (num) => {
-            return new Intl.NumberFormat('en-US').format(num);
-        };
+        // Format number with commas
+        const formatNumber = (num) => new Intl.NumberFormat('en-US').format(num);
 
         // Step 1: About You and Your Family
         function Step1({ formData, setFormData, onNext }) {
@@ -35,8 +33,8 @@
 
             const handleNumChildren = (e) => {
                 const num = parseInt(e.target.value) || 0;
-                setFormData({ 
-                    ...formData, 
+                setFormData({
+                    ...formData,
                     numChildren: num,
                     childrenAges: Array(num).fill(0)
                 });
@@ -68,24 +66,77 @@
             );
         }
 
-        // Step 2: Insurance Need
+        // Step 2: Insurance Needs
         function Step2({ formData, setFormData, onNext, onPrev }) {
+            const toggleNeed = (need) => {
+                const needs = formData.insuranceNeeds || [];
+                if (needs.includes(need)) {
+                    setFormData({ ...formData, insuranceNeeds: needs.filter((n) => n !== need) });
+                } else {
+                    setFormData({ ...formData, insuranceNeeds: [...needs, need] });
+                }
+            };
+
+            const updateDebt = (index, field, value) => {
+                const debts = [...(formData.debts || [])];
+                debts[index] = { ...debts[index], [field]: value };
+                setFormData({ ...formData, debts });
+            };
+
+            const addDebt = () => {
+                const debts = formData.debts || [];
+                setFormData({ ...formData, debts: [...debts, { type: '', amount: '' }] });
+            };
+
             const handleChange = (e) => {
-                const { name, value } = e.target;
-                setFormData({ ...formData, [name]: value });
+                setFormData({ ...formData, [e.target.name]: e.target.value });
             };
 
             return (
                 <div className="step active">
-                    <h2>Step 2: Insurance Need</h2>
+                    <h2>Step 2: Insurance Needs</h2>
                     <label>
-                        Annual Living Cost:
-                        <input type="number" name="livingCost" value={formData.livingCost || ''} onChange={handleChange} />
-                    </label>
+                        <input type="checkbox" onChange={() => toggleNeed('clearDebts')} /> Clear my debts
+                    </label><br />
                     <label>
-                        Number of Years:
-                        <input type="number" name="livingCostYears" value={formData.livingCostYears || ''} onChange={handleChange} />
-                    </label>
+                        <input type="checkbox" onChange={() => toggleNeed('education')} /> Pay for my children's education
+                    </label><br />
+                    <label>
+                        <input type="checkbox" onChange={() => toggleNeed('livingCosts')} /> Help with my family's living costs
+                    </label><br />
+
+                    {(formData.insuranceNeeds || []).includes('clearDebts') && (
+                        <div className="section">
+                            <h3>Debt Details</h3>
+                            {formData.debts?.map((debt, index) => (
+                                <div key={index}>
+                                    <label>Type of Debt:
+                                        <select value={debt.type} onChange={(e) => updateDebt(index, 'type', e.target.value)}>
+                                            <option value="loan">Loan</option>
+                                            <option value="investment">Investment Loan</option>
+                                            <option value="property">Property Loan</option>
+                                        </select>
+                                    </label><br />
+                                    <label>Amount Owing:
+                                        <input type="number" onChange={(e) => updateDebt(index, 'amount', e.target.value)} />
+                                    </label><br />
+                                </div>
+                            ))}
+                            <button onClick={addDebt}>Add Another Debt</button>
+                        </div>
+                    )}
+
+                    {(formData.insuranceNeeds || []).includes('livingCosts') && (
+                        <div className="section">
+                            <h3>Living Cost</h3>
+                            <label>Annual Amount:
+                                <input type="number" name="livingCost" onChange={handleChange} />
+                            </label><br />
+                            <label>Number of Years:
+                                <input type="number" name="livingCostYears" onChange={handleChange} />
+                            </label><br />
+                        </div>
+                    )}
                     <button onClick={onPrev}>Back</button>
                     <button onClick={onNext}>Next</button>
                 </div>
@@ -101,22 +152,21 @@
             return (
                 <div className="step active">
                     <h2>Step 3: Savings & Investments</h2>
-                    <label>
-                        Current Savings:
-                        <input type="number" name="currentSavings" value={formData.currentSavings || ''} onChange={handleChange} />
+                    <label>Current Savings:
+                        <input type="number" name="currentSavings" onChange={handleChange} />
                     </label>
                     <button onClick={onPrev}>Back</button>
                     <button onClick={onNext}>Next</button>
                 </div>
             );
         }
-
-        // Step 4: Calculation and Submission
-        function Step4({ formData, onCalculateAndSubmit }) {
+        
+        // Step 4: Calculation
+        function Step4({ onCalculate }) {
             return (
                 <div className="step active">
                     <h2>Step 4: Calculation</h2>
-                    <button onClick={onCalculateAndSubmit}>Calculate and Submit</button>
+                    <button onClick={onCalculate}>Calculate and Submit</button>
                 </div>
             );
         }
@@ -125,15 +175,8 @@
         function CalculatorApp() {
             const [step, setStep] = useState(1);
             const [formData, setFormData] = useState({});
-
             const nextStep = () => setStep(step + 1);
             const prevStep = () => setStep(step - 1);
-
-            const calculateAndSubmit = () => {
-                const livingCostCoverage = (formData.livingCost || 0) * (formData.livingCostYears || 0);
-                const totalCover = formatNumber(livingCostCoverage);
-                alert(`Total Insurance Cover Required: ${totalCover}`);
-            };
 
             return (
                 <div className="App">
@@ -141,7 +184,7 @@
                     {step === 1 && <Step1 formData={formData} setFormData={setFormData} onNext={nextStep} />}
                     {step === 2 && <Step2 formData={formData} setFormData={setFormData} onNext={nextStep} onPrev={prevStep} />}
                     {step === 3 && <Step3 formData={formData} setFormData={setFormData} onNext={nextStep} onPrev={prevStep} />}
-                    {step === 4 && <Step4 formData={formData} onCalculateAndSubmit={calculateAndSubmit} />}
+                    {step === 4 && <Step4 onCalculate={() => alert('Calculation Completed')} />}
                 </div>
             );
         }
