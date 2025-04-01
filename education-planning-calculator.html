@@ -46,6 +46,11 @@
     <script type="text/babel">
       const { useState } = React;
 
+      // Helper function to format numbers with comma separators.
+      const formatNumber = (num) => {
+        return new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(num);
+      };
+
       // Step 1: Education Information
       function Step1({ formData, setFormData, onNext }) {
         const handleChange = (e) => {
@@ -132,53 +137,14 @@
         );
       }
 
-      // Step 4: Coverage Percentage
-      function Step4({ formData, setFormData, onNext, onPrev }) {
+      // Step 4: Coverage Percentage & Calculate and Submit
+      function Step4({ formData, setFormData, onSubmit, onPrev }) {
         const handleChange = (e) => {
           setFormData({ ...formData, [e.target.name]: e.target.value });
         };
-        return (
-          <div className="step active" id="step4">
-            <h2>Step 4: Amount You Want to Cover</h2>
-            <label>
-              What percentage of the total education cost do you want to cover?<br />
-              (e.g., 100 for full coverage, 50 for half):<br />
-              <input type="number" name="coveragePercent" value={formData.coveragePercent || ''} onChange={handleChange} />
-            </label>
-            <br />
-            <button onClick={onPrev}>Back</button>
-            <button onClick={onNext}>Calculate</button>
-          </div>
-        );
-      }
 
-      // Step 5: Results & Submission
-      function Results({ formData, results, onPrev, onSubmit }) {
-        return (
-          <div className="result">
-            <h2>Results</h2>
-            <p>{results.estimatedTotalCost}</p>
-            <p>{results.totalCoverageAmount}</p>
-            <p>{results.projectedSavings}</p>
-            <p>{results.savingsDeficit}</p>
-            <p>{results.additionalMonthlySaving}</p>
-            <button onClick={onPrev}>Back</button>
-            <button onClick={onSubmit}>Submit Calculator Data</button>
-          </div>
-        );
-      }
-
-      // Main Calculator Component
-      function CalculatorApp() {
-        const [step, setStep] = useState(1);
-        const [formData, setFormData] = useState({});
-        const [results, setResults] = useState(null);
-
-        const nextStep = () => setStep(step + 1);
-        const prevStep = () => setStep(step - 1);
-
-        const calculateResults = () => {
-          // Retrieve form data
+        // When the user clicks "Calculate and Submit", compute the results and submit immediately.
+        const calculateAndSubmit = () => {
           const currentAge = parseFloat(formData.currentAge);
           const targetAge = parseFloat(formData.targetAge);
           const annualCost = parseFloat(formData.annualCost);
@@ -208,17 +174,42 @@
           const deficit = Math.max(amountToCover - projectedSavings, 0);
           const additionalMonthly = deficit * monthlyReturnValue / (Math.pow(1 + monthlyReturnValue, months) - 1);
 
-          setResults({
-            estimatedTotalCost: `Estimated Total Education Cost: ${totalCost.toFixed(2)}`,
-            totalCoverageAmount: `Total Amount to Cover: ${amountToCover.toFixed(2)}`,
-            projectedSavings: `Projected Savings: ${projectedSavings.toFixed(2)}`,
-            savingsDeficit: `Savings Deficit: ${deficit.toFixed(2)}`,
-            additionalMonthlySaving: `Additional Monthly Saving Required: ${additionalMonthly.toFixed(2)}`,
-          });
-          nextStep();
+          const results = {
+            estimatedTotalCost: formatNumber(totalCost),
+            totalCoverageAmount: formatNumber(amountToCover),
+            projectedSavings: formatNumber(projectedSavings),
+            savingsDeficit: formatNumber(deficit),
+            additionalMonthlySaving: formatNumber(additionalMonthly)
+          };
+
+          // Now, submit the data along with results.
+          onSubmit(results);
         };
 
-        const handleSubmit = () => {
+        return (
+          <div className="step active" id="step4">
+            <h2>Step 4: Amount You Want to Cover</h2>
+            <label>
+              What percentage of the total education cost do you want to cover?<br />
+              (e.g., 100 for full coverage, 50 for half):<br />
+              <input type="number" name="coveragePercent" value={formData.coveragePercent || ''} onChange={handleChange} />
+            </label>
+            <br />
+            <button onClick={onPrev}>Back</button>
+            <button onClick={calculateAndSubmit}>Calculate and Submit</button>
+          </div>
+        );
+      }
+
+      // Main Calculator Component
+      function CalculatorApp() {
+        const [step, setStep] = useState(1);
+        const [formData, setFormData] = useState({});
+        const nextStep = () => setStep(step + 1);
+        const prevStep = () => setStep(step - 1);
+
+        // When results are calculated, submit the data.
+        const handleSubmit = (results) => {
           // Retrieve contact info from localStorage.
           const participantName = localStorage.getItem('participantName') || '';
           const participantEmail = localStorage.getItem('participantEmail') || '';
@@ -260,9 +251,7 @@
             case 3:
               return <Step3 formData={formData} setFormData={setFormData} onNext={nextStep} onPrev={prevStep} />;
             case 4:
-              return <Step4 formData={formData} setFormData={setFormData} onNext={calculateResults} onPrev={prevStep} />;
-            case 5:
-              return <Results formData={formData} results={results} onPrev={prevStep} onSubmit={handleSubmit} />;
+              return <Step4 formData={formData} setFormData={setFormData} onSubmit={handleSubmit} onPrev={prevStep} />;
             default:
               return <div>Invalid step</div>;
           }
