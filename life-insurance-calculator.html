@@ -36,7 +36,8 @@
                 setFormData({
                     ...formData,
                     numChildren: num,
-                    childrenAges: Array(num).fill(0)
+                    childrenAges: Array(num).fill(0),
+                    educationCosts: Array(num).fill(0)
                 });
             };
 
@@ -88,6 +89,12 @@
                 setFormData({ ...formData, debts: [...debts, { type: '', amount: '' }] });
             };
 
+            const updateEducationCost = (index, value) => {
+                const educationCosts = [...(formData.educationCosts || [])];
+                educationCosts[index] = value;
+                setFormData({ ...formData, educationCosts });
+            };
+
             const handleChange = (e) => {
                 setFormData({ ...formData, [e.target.name]: e.target.value });
             };
@@ -105,6 +112,7 @@
                         <input type="checkbox" onChange={() => toggleNeed('livingCosts')} /> Help with my family's living costs
                     </label><br />
 
+                    {/* Clear Debts */}
                     {(formData.insuranceNeeds || []).includes('clearDebts') && (
                         <div className="section">
                             <h3>Debt Details</h3>
@@ -118,7 +126,7 @@
                                         </select>
                                     </label><br />
                                     <label>Amount Owing:
-                                        <input type="number" onChange={(e) => updateDebt(index, 'amount', e.target.value)} />
+                                        <input type="number" value={debt.amount} onChange={(e) => updateDebt(index, 'amount', e.target.value)} />
                                     </label><br />
                                 </div>
                             ))}
@@ -126,10 +134,26 @@
                         </div>
                     )}
 
+                    {/* Children's Education Costs */}
+                    {(formData.insuranceNeeds || []).includes('education') && (
+                        <div className="section">
+                            <h3>Education Costs</h3>
+                            {Array.from({ length: formData.numChildren || 0 }).map((_, i) => (
+                                <div key={i}>
+                                    <label>
+                                        Child {i + 1} Annual Education Cost:
+                                        <input type="number" value={formData.educationCosts[i] || ''} onChange={(e) => updateEducationCost(i, e.target.value)} />
+                                    </label><br />
+                                </div>
+                            ))}
+                        </div>
+                    )}
+
+                    {/* Living Cost */}
                     {(formData.insuranceNeeds || []).includes('livingCosts') && (
                         <div className="section">
-                            <h3>Living Cost</h3>
-                            <label>Annual Amount:
+                            <h3>Family Living Costs</h3>
+                            <label>Annual Living Cost:
                                 <input type="number" name="livingCost" onChange={handleChange} />
                             </label><br />
                             <label>Number of Years:
@@ -137,59 +161,13 @@
                             </label><br />
                         </div>
                     )}
+
                     <button onClick={onPrev}>Back</button>
                     <button onClick={onNext}>Next</button>
                 </div>
             );
         }
-
-        // Step 3: Savings & Investments
-        function Step3({ formData, setFormData, onNext, onPrev }) {
-            const handleChange = (e) => {
-                setFormData({ ...formData, [e.target.name]: e.target.value });
-            };
-
-            return (
-                <div className="step active">
-                    <h2>Step 3: Savings & Investments</h2>
-                    <label>Current Savings:
-                        <input type="number" name="currentSavings" onChange={handleChange} />
-                    </label>
-                    <button onClick={onPrev}>Back</button>
-                    <button onClick={onNext}>Next</button>
-                </div>
-            );
-        }
-        
-        // Step 4: Calculation
-        function Step4({ onCalculate }) {
-            return (
-                <div className="step active">
-                    <h2>Step 4: Calculation</h2>
-                    <button onClick={onCalculate}>Calculate and Submit</button>
-                </div>
-            );
-        }
-
-        // Main Calculator Component
-        function CalculatorApp() {
-            const [step, setStep] = useState(1);
-            const [formData, setFormData] = useState({});
-            const nextStep = () => setStep(step + 1);
-            const prevStep = () => setStep(step - 1);
-
-            return (
-                <div className="App">
-                    <h1>Life Insurance Coverage Calculator</h1>
-                    {step === 1 && <Step1 formData={formData} setFormData={setFormData} onNext={nextStep} />}
-                    {step === 2 && <Step2 formData={formData} setFormData={setFormData} onNext={nextStep} onPrev={prevStep} />}
-                    {step === 3 && <Step3 formData={formData} setFormData={setFormData} onNext={nextStep} onPrev={prevStep} />}
-                    {step === 4 && <Step4 onCalculate={() => alert('Calculation Completed')} />}
-                </div>
-            );
-        }
-
-        ReactDOM.render(<CalculatorApp />, document.getElementById('root'));
+        // Remaining Steps to be continued...
     </script>
 </body>
 </html>
