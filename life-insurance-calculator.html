@@ -155,7 +155,8 @@
                 </div>
             );
         }
-    // Step 3: Savings & Investments
+    
+        // Step 3: Savings & Investments
         function Step3({ formData, setFormData, onNext, onPrev }) {
             const handleChange = (e) => {
                 setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -202,15 +203,18 @@
 
             return (
                 <div className="step active">
-                    <h2>Step 4: Results</h2>
-                    <p>Debt Coverage: {results.debtCoverage}</p>
-                    <p>Education Coverage: {results.educationCoverage}</p>
-                    <p>Living Cost Coverage: {results.livingCostCoverage}</p>
-                    <p>Total Coverage Required: {results.totalCoverage}</p>
+                    <h2>Step 4: Estimated Life Insurance Cover You Require</h2>
+                    <div className="result">
+                        <p>Pay off Debt: {results.debtCoverage}</p>
+                        <p>Education: {results.educationCoverage}</p>
+                        <p>Living Cost: {results.livingCostCoverage}</p>
+                        <p><strong>Total Coverage Required: {results.totalCoverage}</strong></p>
+                    </div>
                     <button onClick={onPrev}>Back</button>
                 </div>
             );
         }
+
         // Main Calculator Component
         function CalculatorApp() {
             const [step, setStep] = useState(1);
@@ -223,6 +227,8 @@
                     <h1>Life Insurance Coverage Calculator</h1>
                     {step === 1 && <Step1 formData={formData} setFormData={setFormData} onNext={nextStep} />}
                     {step === 2 && <Step2 formData={formData} setFormData={setFormData} onNext={nextStep} onPrev={prevStep} />}
+                    {step === 3 && <Step3 formData={formData} setFormData={setFormData} onNext={nextStep} onPrev={prevStep} />}
+                    {step === 4 && <Step4 formData={formData} onPrev={prevStep} />}
                 </div>
             );
         }
