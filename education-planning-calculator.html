@@ -140,7 +140,7 @@
           <div className="step active" id="step3">
             <h2>Step 3: Savings</h2>
             <label>
-              Current Education Savings:<br />
+              Current Education Savings Amount:<br />
               <input
                 type="number"
                 name="currentSavings"
@@ -150,7 +150,7 @@
             </label>
             <br />
             <label>
-              Monthly Contribution to Education Savings:<br />
+              Monthly Contribution to Education Savings (in your currency):<br />
               <input
                 type="number"
                 name="monthlyContribution"
@@ -223,13 +223,13 @@
               <strong>Total Amount to Cover:</strong> {results.totalCoverageAmount}
             </p>
             <p>
-              <strong>Projected Savings:</strong> {results.projectedSavings}
+              <strong>Projected Savings Amount:</strong> {results.projectedSavings}
             </p>
             <p>
               <strong>Savings Deficit:</strong> {results.savingsDeficit}
             </p>
             <p>
-              <strong>Additional Monthly Saving Required:</strong> {results.additionalMonthlySaving}
+              <strong>Additional Amount for Monthly Saving Required:</strong> {results.additionalMonthlySaving}
             </p>
           </div>
         );
