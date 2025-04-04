@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Financial Values Survey</title>
+  <title>Financial Actions Survey</title>
   <!-- Import React and ReactDOM from CDNs -->
   <script crossorigin src="https://unpkg.com/react@17/umd/react.development.js"></script>
   <script crossorigin src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>
@@ -103,7 +103,7 @@
     // The survey now starts at Step 1 (selecting financial values).
     // Final submission posts all data (including name/email from localStorage) to Formspree.
     function App() {
-      // Steps: 1: Choose Top 5 Financial Values, 2: Choose Goal Directions, 3: Assign Timeline, 4: Timeline Visualization & Submit.
+      // Steps: 1: Choose Top 5 Core Values, 2: Choose Finance Actiosn, 3: Assign Timeline, 4: Timeline Visualization & Submit.
       const [step, setStep] = useState(1);
       const [selectedValues, setSelectedValues] = useState([]);
       const [selectedGoals, setSelectedGoals] = useState({});
@@ -170,7 +170,7 @@
       );
     }
 
-    // Step 1: Choose Top 5 Financial Values.
+    // Step 1: Choose Top 5 Core Values.
     function Step1({ selectedValues, setSelectedValues, onNext }) {
       const toggleValue = (id) => {
         let newValues;
@@ -189,7 +189,7 @@
 
       return (
         <div className="step active" id="step1">
-          <h2>Step 1: Choose Your Top 5 Financial Values</h2>
+          <h2>Step 1: Choose Your Top 5 Core Values</h2>
           <ul>
             {financialValues.map((value) => (
               <li key={value.id}>
@@ -205,7 +205,7 @@
       );
     }
 
-    // Step 2: Choose Financial Goal Directions.
+    // Step 2: Choose Financial Actions.
     function Step2({ selectedValues, selectedGoals, setSelectedGoals, onNext, onPrev }) {
       const handleGoalToggle = (valueId, goalId) => {
         const currentGoals = selectedGoals[valueId] || [];
@@ -220,7 +220,7 @@
 
       return (
         <div className="step active" id="step2">
-          <h2>Step 2: Choose Financial Goal Directions</h2>
+          <h2>Step 2: Choose Financial Actions</h2>
           {selectedValues.map((valueId) => (
             <div key={valueId}>
               <h3>{financialValues.find((v) => v.id === valueId).label}</h3>
